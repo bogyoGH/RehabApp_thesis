@@ -59,7 +59,7 @@ class SessionViewModel {
         val accel = data.GetNormalizedAcceleration()
         val magnitude = kotlin.math.sqrt(accel["x"]!! * accel["x"]!! + accel["y"]!! * accel["y"]!! + accel["z"]!! * accel["z"]!!)
         val score = (100 - (magnitude * 50)).coerceIn(0.0, 100.0)
-    // Matematikai kerekítés 1 tizedesjegyre (KMP kompatibilis):
+        // Matematikai kerekítés 1 tizedesjegyre (KMP kompatibilis):
         val roundedScore = (score * 10).toInt() / 10.0
         stabilityScore = "Stability: $roundedScore/100"    }
 
