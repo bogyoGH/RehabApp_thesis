@@ -1,6 +1,5 @@
-package org.example.project
+package org.example.project.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +16,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.DropdownMenuItem
+import org.example.project.RehabTaskType
+import org.example.project.ScheduledTask
+import org.example.project.SessionViewModel
 
 // Képernyők közötti navigáció állapota
 sealed class Screen {
@@ -76,13 +78,12 @@ fun ConfigScreen(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedTaskType by remember { mutableStateOf<RehabTaskType?>(null) }
-    var taskDuration by remember { mutableStateOf("10") }
+    var taskDuration by remember { mutableStateOf("15") } // Alapértelmezett 15 mp
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Session Configuration", style = MaterialTheme.typography.headlineMedium, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Beteg azonosító (Python TextField megfelelője)
         OutlinedTextField(
             value = patientId,
             onValueChange = onPatientIdChange,
@@ -91,15 +92,13 @@ fun ConfigScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Choose tasks", style = MaterialTheme.typography.titleMedium)
 
-        // Gyors feladat gombok az Enum alapján
+        // Feladat hozzáadása szekció
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Dropdown menu
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded },
@@ -118,9 +117,10 @@ fun ConfigScreen(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    RehabTaskType.values().forEach { taskType ->
+                    // Modern .entries használata a .values() helyett
+                    RehabTaskType.entries.forEach { taskType ->
                         DropdownMenuItem(
-                            text = { Text(taskType.displayName) }, // Teljes név!
+                            text = { Text(taskType.displayName) },
                             onClick = {
                                 selectedTaskType = taskType
                                 expanded = false
@@ -130,66 +130,55 @@ fun ConfigScreen(
                 }
             }
 
-            // Időtartam választó
             OutlinedTextField(
                 value = taskDuration,
-                onValueChange = { newValue ->
-                    if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
-                        taskDuration = newValue
-                    }
-                },
-                label = { Text("Duration (s)") },
-                modifier = Modifier.width(100.dp)
+                onValueChange = { if (it.all { char -> char.isDigit() }) taskDuration = it },
+                label = { Text("Sec") },
+                modifier = Modifier.width(70.dp)
             )
-            // Hozzáadás gomb
+
             Button(
                 onClick = {
-                    selectedTaskType?.let { task ->
-                        val duration = taskDuration.toIntOrNull() ?: 10
-                        selectedTasks.add(ScheduledTask.Preset(task, duration))
+                    selectedTaskType?.let {
+                        selectedTasks.add(ScheduledTask.Preset(it, taskDuration.toIntOrNull() ?: 10))
                     }
                 },
-                enabled = selectedTaskType != null && taskDuration.isNotEmpty()
+                enabled = selectedTaskType != null
             ) {
                 Text("Add")
             }
         }
 
-        // Kiválasztott feladatok listája (Python custom_task_list)
-        Text(
-            "Selected Sequence:",
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(top = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Kiválasztott feladatok listája javított kártyákkal
         LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
             items(selectedTasks) { task ->
-                val name = when (task) {
-                    is ScheduledTask.Preset -> task.type.displayName
-                    is ScheduledTask.Custom -> task.name
-                }
-                Card(modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(name, modifier = Modifier.weight(1f))
-                        Text("${task.duration}s", color = Color.Gray)
+                Card(
+                    modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(task.displayName, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
+                        Text("${task.duration}s", color = Color.Gray, modifier = Modifier.padding(horizontal = 8.dp))
                         IconButton(onClick = { selectedTasks.remove(task) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFEF5350))
                         }
                     }
                 }
             }
         }
 
-        // START gomb (Python START QUICK SESSION alapján)
         Button(
             onClick = onStart,
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp),
+            enabled = selectedTasks.isNotEmpty(), // Csak akkor indítható, ha van feladat
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
         ) {
             Text("START SESSION", fontWeight = FontWeight.Bold)
         }
     }
 }
-
 @Composable
 fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
     Column(
