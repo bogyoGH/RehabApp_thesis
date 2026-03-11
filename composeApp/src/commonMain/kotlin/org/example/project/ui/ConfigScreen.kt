@@ -23,7 +23,8 @@ fun ConfigScreen(
     onPatientIdChange: (String) -> Unit,
     selectedTasks: MutableList<ScheduledTask>,
     onStart: () -> Unit,
-    onClearSession: () -> Unit
+    onClearSession: () -> Unit,
+    onOpenSavedSessions: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedTaskType by remember { mutableStateOf<RehabTaskType?>(null) }
@@ -118,10 +119,21 @@ fun ConfigScreen(
                 }
             }
         }
+
+        // A gombok sorát külön vettem a dialógustól
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Button(
+                onClick = { showClearSessionDialog = true },
+                modifier = Modifier.weight(1f).height(56.dp),
+                enabled = selectedTasks.isNotEmpty(), // Csak akkor aktív, ha van mit törölni
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
+            ) {
+                Text("CLEAR SESSION", fontWeight = FontWeight.Bold)
+            }
+
             Button(
                 onClick = onStart,
                 modifier = Modifier.weight(1f).height(56.dp),
@@ -130,39 +142,42 @@ fun ConfigScreen(
             ) {
                 Text("START SESSION", fontWeight = FontWeight.Bold)
             }
-            Button(
-                onClick = { showClearSessionDialog = true },
-                modifier = Modifier.weight(1f).height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
-            ) {
-                Text("CLEAR SESSION", fontWeight = FontWeight.Bold)
-            }
-
-            if (showClearSessionDialog) {
-                AlertDialog(
-                    onDismissRequest = { showClearSessionDialog = false },
-                    title = { Text("Törlés megerősítése") },
-                    text = { Text("Biztosan szeretné törölni a feladatokat?") },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                selectedTasks.clear() // Ez üríti ki a listát
-                                showClearSessionDialog = false
-                            }
-                        ) {
-                            Text("Igen", color = Color(0xFFEF5350)) // Pirosas szín a törlésnek
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = { showClearSessionDialog = false }
-                        ) {
-                            Text("Nem", color = Color.White)
-                        }
-                    },
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = onOpenSavedSessions,
+            modifier = Modifier.fillMaxWidth().height(48.dp)
+        ) {
+            Text("SAVED SESSIONS")
+        }
+    }
+
+    // A dialógust kivettem a Row-ból, és a funkció végére raktam (ahogy a Compose-ban szokás)
+    if (showClearSessionDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearSessionDialog = false },
+            title = { Text("Törlés megerősítése") },
+            text = { Text("Biztosan szeretné törölni a feladatokat?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearSession() // A fentről kapott lambdát hívjuk meg
+                        showClearSessionDialog = false
+                    }
+                ) {
+                    Text("Igen", color = Color(0xFFEF5350))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showClearSessionDialog = false }
+                ) {
+                    Text("Nem", color = Color.White)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }

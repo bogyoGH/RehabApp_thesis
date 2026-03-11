@@ -11,6 +11,7 @@ import org.example.project.ScheduledTask
 sealed class Screen {
     object Config : Screen()
     object Execution : Screen()
+    object SavedSessions : Screen()
 }
 
 @Composable
@@ -42,6 +43,9 @@ fun App() {
                     },
                     onClearSession = {
                         selectedTasks.clear()
+                    }, // <--- ITT HIÁNYZOTT EGY VESSZŐ
+                    onOpenSavedSessions = {
+                        currentScreen = Screen.SavedSessions
                     }
                 )
 
@@ -51,6 +55,10 @@ fun App() {
                         viewModel.stopSession()
                         currentScreen = Screen.Config
                     }
+                )
+
+                is Screen.SavedSessions -> SavedSessionsScreen(
+                    onBack = { currentScreen = Screen.Config }
                 )
             }
         }

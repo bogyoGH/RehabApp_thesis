@@ -1,12 +1,15 @@
 package org.example.project
 
+import android.content.Context
 import java.io.File
 
 actual object FileStorage {
+
+    private fun getContext(): Context? = AppContextHolder.context
+
     actual fun saveText(fileName: String, content: String): String {
-        // Átmeneti könyvtár használata (ideális teszteléshez).
-        // Éles alkalmazásban érdemes az Android Context-ből lekérni a filesDir-t.
-        val directory = File(System.getProperty("java.io.tmpdir"))
+        val context = getContext() ?: return "ERROR: Context not initialized"
+        val directory = context.filesDir
         if (!directory.exists()) {
             directory.mkdirs()
         }
@@ -16,5 +19,26 @@ actual object FileStorage {
 
         println("Fájl elmentve Androidon ide: ${file.absolutePath}")
         return file.absolutePath
+    }
+
+    actual fun readText(fileName: String): String? {
+        val context = getContext() ?: return null
+        val safeName = fileName.substringAfterLast('/')
+        if (safeName.isBlank()) return null
+
+        val file = File(context.filesDir, safeName)
+        return if (file.exists() && file.isFile) file.readText() else null
+    }
+
+    actual fun listFiles(): List<String> {
+        val context = getContext() ?: return emptyList()
+        val dir = context.filesDir
+        return dir.listFiles()
+            ?.asSequence()
+            ?.filter { it.isFile }
+            ?.map { it.name }
+            ?.sortedDescending()
+            ?.toList()
+            ?: emptyList()
     }
 }
