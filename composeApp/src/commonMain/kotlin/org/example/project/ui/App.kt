@@ -39,6 +39,9 @@ fun App() {
                             viewModel.startSession(selectedTasks)
                             currentScreen = Screen.Execution
                         }
+                    },
+                    onClearSession = {
+                        selectedTasks.clear()
                     }
                 )
 

@@ -22,11 +22,13 @@ fun ConfigScreen(
     patientId: String,
     onPatientIdChange: (String) -> Unit,
     selectedTasks: MutableList<ScheduledTask>,
-    onStart: () -> Unit
+    onStart: () -> Unit,
+    onClearSession: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedTaskType by remember { mutableStateOf<RehabTaskType?>(null) }
     var taskDuration by remember { mutableStateOf("15") }
+    var showClearSessionDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Session Configuration", style = MaterialTheme.typography.headlineMedium, color = Color.White)
@@ -103,7 +105,10 @@ fun ConfigScreen(
                     modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(task.displayName, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
                         Text("${task.duration}s", color = Color.Gray, modifier = Modifier.padding(horizontal = 8.dp))
                         IconButton(onClick = { selectedTasks.remove(task) }) {
@@ -113,14 +118,51 @@ fun ConfigScreen(
                 }
             }
         }
-
-        Button(
-            onClick = onStart,
-            modifier = Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp),
-            enabled = selectedTasks.isNotEmpty(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("START SESSION", fontWeight = FontWeight.Bold)
+            Button(
+                onClick = onStart,
+                modifier = Modifier.weight(1f).height(56.dp),
+                enabled = selectedTasks.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+            ) {
+                Text("START SESSION", fontWeight = FontWeight.Bold)
+            }
+            Button(
+                onClick = { showClearSessionDialog = true },
+                modifier = Modifier.weight(1f).height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
+            ) {
+                Text("CLEAR SESSION", fontWeight = FontWeight.Bold)
+            }
+
+            if (showClearSessionDialog) {
+                AlertDialog(
+                    onDismissRequest = { showClearSessionDialog = false },
+                    title = { Text("Törlés megerősítése") },
+                    text = { Text("Biztosan szeretné törölni a feladatokat?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                selectedTasks.clear() // Ez üríti ki a listát
+                                showClearSessionDialog = false
+                            }
+                        ) {
+                            Text("Igen", color = Color(0xFFEF5350)) // Pirosas szín a törlésnek
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showClearSessionDialog = false }
+                        ) {
+                            Text("Nem", color = Color.White)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            }
         }
     }
 }
