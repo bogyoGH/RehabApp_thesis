@@ -12,8 +12,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
-        // 🔴 FONTOS: Context inicializálása AZONNAL, a setContent() ELŐTT
         AppContextHolder.context = applicationContext
 
         setContent {
