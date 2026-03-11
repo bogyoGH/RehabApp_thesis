@@ -21,6 +21,8 @@ class SessionViewModel {
     var timerText by mutableStateOf("00")
     var progressValue by mutableStateOf(0f)
     var isRunning by mutableStateOf(false)
+    var sessionCompleted by mutableStateOf(false)
+
     var stabilityScore by mutableStateOf("Stability: --")
 
     var patientId by mutableStateOf("PT-001")
@@ -37,6 +39,7 @@ class SessionViewModel {
 
     fun startSession(tasks: List<ScheduledTask>) {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
+        sessionCompleted = false
         scheduledTasksForExport = tasks
         isRunning = true
         sessionData.clear()
@@ -79,10 +82,12 @@ class SessionViewModel {
     fun stopSession() {
         sessionJob?.cancel() // Megállítja a futó mérést
         isRunning = false
+        sessionCompleted = false
     }
 
     private fun finishSession() {
         isRunning = false
+        sessionCompleted = true
         currentTaskName = "All Tasks Completed!" //
         saveSessionToJson()
     }

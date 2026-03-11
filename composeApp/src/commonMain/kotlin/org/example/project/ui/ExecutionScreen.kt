@@ -10,6 +10,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.project.SessionViewModel
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
@@ -51,6 +53,12 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+        LaunchedEffect(viewModel.sessionCompleted) {
+            if (viewModel.sessionCompleted) {
+                delay(1000)
+                onStop()
+            }
         }
     }
 }
