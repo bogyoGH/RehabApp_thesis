@@ -4,6 +4,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.*
+import kotlin.time.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import org.example.project.dto.ExportedSensorData
+import org.example.project.dto.SessionExport
+import org.example.project.dto.SessionInfo
+import org.example.project.dto.ExportedTasks
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 
 class SessionViewModel {
     // UI Állapotok
@@ -13,15 +23,21 @@ class SessionViewModel {
     var isRunning by mutableStateOf(false)
     var stabilityScore by mutableStateOf("Stability: --")
 
+    var patientId by mutableStateOf("PT-001")
+
     private val sessionData = mutableListOf<SensoriaData>() //
 
     // ViewModel szintű Scope a biztonságos szálkezeléshez
     private val viewModelScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var sessionJob: Job? = null
 
+    private var scheduledTasksForExport = listOf<ScheduledTask>()
+    var saveStatus by mutableStateOf("")
+
+
     fun startSession(tasks: List<ScheduledTask>) {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
-
+        scheduledTasksForExport = tasks
         isRunning = true
         sessionData.clear()
 
@@ -68,5 +84,43 @@ class SessionViewModel {
     private fun finishSession() {
         isRunning = false
         currentTaskName = "All Tasks Completed!" //
+        saveSessionToJson()
+    }
+
+    private fun saveSessionToJson() {
+        val now = Clock.System.now()
+        val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds())
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+        val sessionId = "session_${localDateTime.date.toString().replace("-", "")}_" +
+                "${localDateTime.hour}${localDateTime.minute}${localDateTime.second}"
+
+        val export = SessionExport(
+            sessionInfo = SessionInfo(
+                sessionId = sessionId,
+                patientId = patientId,
+                timeStamp = localDateTime.toString(),
+                mode = "Offline",
+                bluetoothEnabled = false,
+                tasks = scheduledTasksForExport.map { ExportedTasks(it.displayName, it.duration) }
+            ),
+            sensorData = sessionData.map { d ->
+                ExportedSensorData(
+                    timestamp = d.timestamp.toString(),
+                    task = d.taskName,
+                    pressure = mapOf("ch0" to d.ch0, "ch1" to d.ch1, "ch2" to d.ch2),
+                    accelNormalized = d.GetNormalizedAcceleration()
+                )
+            }
+        )
+
+        val jsonString = Json { prettyPrint = true }.encodeToString(export)
+
+        runCatching {
+            FileStorage.saveText("$sessionId.json", jsonString)
+        }.onSuccess { savedPath ->
+            saveStatus = "Sikeres mentés: $savedPath"
+        }.onFailure { e ->
+            saveStatus = "Mentési hiba: ${e.message ?: "ismeretlen hiba"}"
+        }
     }
 }

@@ -44,5 +44,13 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
         ) {
             Text("STOP SESSION", fontWeight = FontWeight.Bold)
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        if (viewModel.saveStatus.isNotBlank()) {
+            Text(
+                text = viewModel.saveStatus,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }

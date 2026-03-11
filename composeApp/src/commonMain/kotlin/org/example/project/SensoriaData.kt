@@ -2,6 +2,7 @@ package org.example.project
 
 import kotlin.time.Clock
 
+
 // A class a zokni adatait tartalmazza
 data class SensoriaData(
     //idő változó
