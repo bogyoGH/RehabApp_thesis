@@ -12,8 +12,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        AppContextHolder.context = applicationContext
-
+        if (!AppContextHolder.isInitialized()) {
+            AppContextHolder.context = applicationContext
+        }
         setContent {
             App()
         }

@@ -36,6 +36,9 @@ class SessionViewModel {
     private var scheduledTasksForExport = listOf<ScheduledTask>()
     var saveStatus by mutableStateOf("")
 
+    var currentVideoName by mutableStateOf<String?>("")
+    var currentInstruction by mutableStateOf("")
+    var currentFallback by mutableStateOf("")
 
     fun startSession(tasks: List<ScheduledTask>) {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
@@ -59,7 +62,19 @@ class SessionViewModel {
 
     private suspend fun runTask(task: ScheduledTask) {
         currentTaskName = task.displayName // A 1. lépésben bevezetett közös nevet használjuk
+        if(task is ScheduledTask.Preset) {
+            currentVideoName = when {
+                task is ScheduledTask.Preset && task.type.videoName.isNotBlank() -> task.type.videoName
+                else -> null  // Ha nincs videó, ne próbálja betölteni
+            }
+            currentInstruction = task.type.instruction
+            currentFallback = task.type.fallback
 
+        }else {
+            currentVideoName = "buffer"
+            currentInstruction = "Kövesse a terapeuta utasításait a gyakorlat végrehajtásához."
+            currentFallback = ""
+        }
         for (second in task.duration downTo 0) {
             timerText = second.toString().padStart(2, '0') //
             progressValue = (task.duration - second).toFloat() / task.duration //

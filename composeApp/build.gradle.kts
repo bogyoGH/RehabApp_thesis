@@ -31,6 +31,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation("androidx.media3:media3-exoplayer:1.2.0")
+            implementation("androidx.media3:media3-ui:1.2.0")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -44,6 +46,7 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+            implementation("com.juul.kable:core:0.33.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

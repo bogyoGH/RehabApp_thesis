@@ -1,5 +1,18 @@
 package org.example.project.ui
 
+/**
+ * ÖTLET:
+ * lehetne a cofigscreenen egy costume task gomb, ahol simán be lehet rakni egyedileg választott
+ * gyakorlatokat egymás után -> gomb lenne -> megnyit egy másik oldalt ->
+ * feladatok felsorova, esetleg némi leírás, hogy az egyes gyakorlatok mit fejlesztenek
+ * mellettük plusz jel és be lehetne állítani mennyi időre ->
+ * onnan start session
+ *
+ *szintén a configtaskon egy gomb, hogy rehab sessions (vagy vmi hasonló) szintén új screenen rehabilitációs gyakorlatsorozatok, allattuk szintén leírva hogy melyik mire hasznos
+ * -> előre meghatározott costume task listák - rákkattintva listázza a gyakorlatokat, időtartammal ->
+ * esetleg módosítani lehetne
+ */
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
