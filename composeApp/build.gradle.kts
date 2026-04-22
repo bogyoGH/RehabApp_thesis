@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -13,7 +14,7 @@ kotlin {
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
-            freeCompilerArgs.add("-Xexpect-actual-classes")
+       //     freeCompilerArgs.add("-Xexpect-actual-classes")
         }
     }
     
@@ -34,6 +35,8 @@ kotlin {
             implementation("androidx.media3:media3-exoplayer:1.2.0")
             implementation("androidx.media3:media3-ui:1.2.0")
         }
+        iosMain.dependencies {
+        }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -46,7 +49,9 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-            implementation("com.juul.kable:core:0.33.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+            implementation("com.juul.kable:kable-core:0.35.0")
+            implementation("com.benasher44:uuid:0.8.4")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

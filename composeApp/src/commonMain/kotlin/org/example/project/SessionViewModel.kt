@@ -40,6 +40,9 @@ class SessionViewModel {
     var currentInstruction by mutableStateOf("")
     var currentFallback by mutableStateOf("")
 
+    var bluetoothStatus by mutableStateOf("Nincs csatlakoztatva")
+    var isBluetoothConnected by mutableStateOf(false)
+    var isScanning by mutableStateOf(false)
     fun startSession(tasks: List<ScheduledTask>) {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
         sessionCompleted = false
@@ -143,4 +146,35 @@ class SessionViewModel {
             saveStatus = "Mentési hiba: ${e.message ?: "ismeretlen hiba"}"
         }
     }
+
+    fun connectToBluetooth() {
+        if (isBluetoothConnected || isScanning) return
+
+        isScanning = true
+        bluetoothStatus = "Keresés..."
+
+        viewModelScope.launch {
+            try {
+                // A SensoriaBluetoothManager példányosítása
+                val manager = `SensoriaBluetoothManager`(this)
+
+                // A connectAndListen() elindítása
+                manager.connectAndListen().collect { data ->
+                    if (!isBluetoothConnected) {
+                        isBluetoothConnected = true
+                        isScanning = false
+                        bluetoothStatus = "Csatlakozva"
+                    }
+                    // Itt akár frissítheted a stabilitási pontszámot is élőben
+                    val score = StabilityCalculator.calculate(data)
+                    stabilityScore = "Stability: $score/100"
+                }
+            } catch (e: Exception) {
+                isScanning = false
+                isBluetoothConnected = false
+                bluetoothStatus = "Hiba: ${e.message ?: "Ismeretlen hiba"}"
+            }
+        }
+    }
 }
+

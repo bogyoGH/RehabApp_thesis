@@ -35,6 +35,10 @@ fun ConfigScreen(
     patientId: String,
     onPatientIdChange: (String) -> Unit,
     selectedTasks: MutableList<ScheduledTask>,
+    bluetoothStatus: String,
+    isBluetoothConnected: Boolean,
+    isScanning: Boolean,
+    onConnectBluetooth: () -> Unit,
     onStart: () -> Unit,
     onClearSession: () -> Unit,
     onOpenSavedSessions: () -> Unit
@@ -47,6 +51,37 @@ fun ConfigScreen(
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Session Configuration", style = MaterialTheme.typography.headlineMedium, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = isBluetoothConnected || isScanning,
+                        onCheckedChange = { if (it) onConnectBluetooth() },
+                        enabled = !isBluetoothConnected && !isScanning // Csak ha nincs még kész
+                    )
+                    Text("Connect to Bluetooth", fontWeight = FontWeight.Bold)
+
+                    if (isScanning) {
+                        Spacer(Modifier.width(8.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    }
+                }
+
+                Text(
+                    text = "Status: $bluetoothStatus",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = when {
+                        isBluetoothConnected -> Color(0xFF4CAF50) // Zöld
+                        bluetoothStatus.startsWith("Hiba") -> Color(0xFFEF5350) // Piros
+                        else -> Color.LightGray
+                    }
+                )
+            }
+        }
 
         OutlinedTextField(
             value = patientId,

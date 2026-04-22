@@ -7,4 +7,5 @@ expect object FileStorage {
     fun saveText(fileName: String, content: String): String
     fun readText(fileName: String): String?
     fun listFiles(): List<String>
+    fun deleteFile(fileName: String): Boolean
 }

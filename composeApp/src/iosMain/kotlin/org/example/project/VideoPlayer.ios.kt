@@ -14,13 +14,8 @@ import platform.UIKit.UIView
 @Composable
 actual fun VideoPlayer(videoName: String, modifier: Modifier) {
     val player = remember(videoName) {
-        // Megkeressük a videót a beágyazott Framework-ök között
-        val frameworksBundle = NSBundle.allBundles.firstOrNull { bundle ->
-            (bundle as NSBundle).bundlePath.endsWith(".framework") &&
-                    bundle.pathForResource(videoName, ofType = "mp4") != null
-        } as? NSBundle
-
-        val path = frameworksBundle?.pathForResource(videoName, ofType = "mp4")
+        // Megkeressük a videót az app bundle-ben
+        val path = NSBundle.mainBundle.pathForResource(videoName, ofType = "mp4")
 
         if (path != null) {
             val url = NSURL.fileURLWithPath(path)

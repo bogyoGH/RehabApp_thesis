@@ -35,6 +35,12 @@ fun App() {
                     patientId = patientId,
                     onPatientIdChange = { patientId = it },
                     selectedTasks = selectedTasks,
+                    // --- EZEK A SOROK HIÁNYZOTTAK ---
+                    bluetoothStatus = viewModel.bluetoothStatus,
+                    isBluetoothConnected = viewModel.isBluetoothConnected,
+                    isScanning = viewModel.isScanning,
+                    onConnectBluetooth = { viewModel.connectToBluetooth() },
+                    // -------------------------------
                     onStart = {
                         if (selectedTasks.isNotEmpty()) {
                             viewModel.startSession(selectedTasks)
@@ -43,7 +49,7 @@ fun App() {
                     },
                     onClearSession = {
                         selectedTasks.clear()
-                    }, // <--- ITT HIÁNYZOTT EGY VESSZŐ
+                    },
                     onOpenSavedSessions = {
                         currentScreen = Screen.SavedSessions
                     }

@@ -61,4 +61,26 @@ actual object FileStorage {
         // Csak a String típusú elemeket tartjuk meg (fájlnevek), és csökkenő sorrendbe tesszük (legújabb elöl)
         return entries.filterIsInstance<String>().sortedDescending()
     }
+
+    // ÚJ: A törlési logika iOS implementációja
+    @OptIn(ExperimentalForeignApi::class)
+    actual fun deleteFile(fileName: String): Boolean {
+        val dir = documentsPath() ?: return false
+        val fullPath = "$dir/$fileName"
+        val fileManager = NSFileManager.defaultManager
+
+        // Ellenőrizzük, hogy létezik-e a fájl
+        if (!fileManager.fileExistsAtPath(fullPath)) {
+            return false
+        }
+
+        return try {
+            // Fájl eltávolítása
+            fileManager.removeItemAtPath(fullPath, error = null)
+            true
+        } catch (e: Exception) {
+            println("Hiba a fájl törlésekor iOS-en: ${e.message}")
+            false
+        }
+    }
 }

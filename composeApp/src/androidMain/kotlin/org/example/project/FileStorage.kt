@@ -41,4 +41,17 @@ actual object FileStorage {
             ?.toList()
             ?: emptyList()
     }
+
+    actual fun deleteFile(fileName: String) : Boolean{
+        val context = getContext() ?: return false
+        val safeName = fileName.substringAfterLast('/')
+        if (safeName.isBlank()) return false
+
+        val file = File(context.filesDir, safeName)
+        return if (file.exists() && file.isFile) {
+            file.delete()
+        } else {
+            false
+        }
+    }
 }

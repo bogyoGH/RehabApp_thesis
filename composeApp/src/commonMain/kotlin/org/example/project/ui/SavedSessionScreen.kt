@@ -32,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.example.project.FileStorage
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +88,30 @@ fun SavedSessionsScreen(
             ) {
                 items(files) { fileName ->
                     Card(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Session $fileName",
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = {
+                                val isDeleted = FileStorage.deleteFile(fileName)
+                                if (isDeleted) {
+                                    reloadFiles()
+                                }
+                            }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Törlés",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(fileName, fontWeight = FontWeight.Medium)
                         }
