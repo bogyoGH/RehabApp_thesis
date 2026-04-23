@@ -1,4 +1,7 @@
-package org.example.project
+package org.example.project.ui
 
-class CameraPreview {
-}
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+@Composable
+expect fun CameraPreview(modifier: Modifier = Modifier)
