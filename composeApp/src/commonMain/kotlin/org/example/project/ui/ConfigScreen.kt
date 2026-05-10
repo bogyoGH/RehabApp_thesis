@@ -35,10 +35,9 @@ fun ConfigScreen(
     patientId: String,
     onPatientIdChange: (String) -> Unit,
     selectedTasks: MutableList<ScheduledTask>,
+    isBluetoothEnabled: Boolean,
     bluetoothStatus: String,
-    isBluetoothConnected: Boolean,
-    isScanning: Boolean,
-    onConnectBluetooth: () -> Unit,
+    onToggleBluetooth: (Boolean) -> Unit,
     onStart: () -> Unit,
     onClearSession: () -> Unit,
     onOpenSavedSessions: () -> Unit
@@ -59,30 +58,35 @@ fun ConfigScreen(
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = isBluetoothConnected || isScanning,
-                        onCheckedChange = { if (it) onConnectBluetooth() },
-                        enabled = !isBluetoothConnected && !isScanning // Csak ha nincs még kész
+                        checked = isBluetoothEnabled,
+                        onCheckedChange = { isChecked -> onToggleBluetooth(isChecked) },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color(0xFF4CAF50),
+                            uncheckedColor = Color.LightGray
+                        )
                     )
-                    Text("Connect to Bluetooth", fontWeight = FontWeight.Bold)
+                    Text("Bluetooth kapcsolat", fontWeight = FontWeight.Bold)
 
-                    if (isScanning) {
+                    // Pörgő ikon, amíg keres vagy csatlakozik
+                    if (bluetoothStatus.contains("Keresés") || bluetoothStatus.contains("Csatlakozás")) {
                         Spacer(Modifier.width(8.dp))
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     }
                 }
 
+                // Dinamikus státuszszöveg színezés
                 Text(
-                    text = "Status: $bluetoothStatus",
+                    text = "Státusz: $bluetoothStatus",
                     style = MaterialTheme.typography.bodySmall,
                     color = when {
-                        isBluetoothConnected -> Color(0xFF4CAF50) // Zöld
-                        bluetoothStatus.startsWith("Hiba") -> Color(0xFFEF5350) // Piros
-                        else -> Color.LightGray
+                        bluetoothStatus.contains("Hiba") || bluetoothStatus.contains("Megszakadt") -> Color(0xFFEF5350) // Piros
+                        bluetoothStatus.contains("Adat fogadva") -> Color(0xFF4CAF50) // Zöld
+                        bluetoothStatus.contains("Csatlakoztatva") -> Color(0xFF64B5F6) // Kék
+                        else -> Color.LightGray // Alapértelmezett (pl. Leválasztva)
                     }
                 )
             }
         }
-
         OutlinedTextField(
             value = patientId,
             onValueChange = onPatientIdChange,

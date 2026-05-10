@@ -1,6 +1,7 @@
 package org.example.project
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.*
@@ -14,6 +15,9 @@ import org.example.project.dto.SessionInfo
 import org.example.project.dto.ExportedTasks
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+
 
 class SessionViewModel {
     // UI Állapotok
@@ -40,9 +44,12 @@ class SessionViewModel {
     var currentInstruction by mutableStateOf("")
     var currentFallback by mutableStateOf("")
 
+    var isBluetoothEnabled by mutableStateOf(false) // Ez vezérli a pipát
     var bluetoothStatus by mutableStateOf("Nincs csatlakoztatva")
-    var isBluetoothConnected by mutableStateOf(false)
-    var isScanning by mutableStateOf(false)
+    var dataPacketCount by mutableIntStateOf(0)
+
+    private var bleJob: Job? = null
+    private var bluetoothManager: SensoriaBluetoothManager? = null
     fun startSession(tasks: List<ScheduledTask>) {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
         sessionCompleted = false
@@ -65,7 +72,7 @@ class SessionViewModel {
 
     private suspend fun runTask(task: ScheduledTask) {
         currentTaskName = task.displayName // A 1. lépésben bevezetett közös nevet használjuk
-        if(task is ScheduledTask.Preset) {
+        if (task is ScheduledTask.Preset) {
             currentVideoName = when {
                 task is ScheduledTask.Preset && task.type.videoName.isNotBlank() -> task.type.videoName
                 else -> null  // Ha nincs videó, ne próbálja betölteni
@@ -73,18 +80,21 @@ class SessionViewModel {
             currentInstruction = task.type.instruction
             currentFallback = task.type.fallback
 
-        }else {
+        } else {
             currentVideoName = "buffer"
             currentInstruction = "Kövesse a terapeuta utasításait a gyakorlat végrehajtásához."
             currentFallback = ""
         }
         for (second in task.duration downTo 0) {
-            timerText = second.toString().padStart(2, '0') //
-            progressValue = (task.duration - second).toFloat() / task.duration //
+            timerText = second.toString().padStart(2, '0')
+            progressValue = (task.duration - second).toFloat() / task.duration
 
-            // Adatgenerálás és feldolgozás
-            val mockPacket = MockDataGenerator.generatePacket(currentTaskName)
-            processNewData(mockPacket)
+            // Ha nincs bekapcsolva a Bluetooth, akkor MOCK adatot generálunk a UI kedvéért
+            if (!isBluetoothEnabled) {
+                val mockPacket = MockDataGenerator.generatePacket(currentTaskName)
+                processNewData(mockPacket)
+            }
+            // (Ha be van kapcsolva a Bluetooth, akkor az adatokat a connectAndListen flow-ja adja)
 
             delay(1000)
         }
@@ -147,34 +157,56 @@ class SessionViewModel {
         }
     }
 
-    fun connectToBluetooth() {
-        if (isBluetoothConnected || isScanning) return
 
-        isScanning = true
-        bluetoothStatus = "Keresés..."
+    fun toggleBluetooth(enabled: Boolean) {
+        isBluetoothEnabled = enabled
 
-        viewModelScope.launch {
-            try {
-                // A SensoriaBluetoothManager példányosítása
-                val manager = `SensoriaBluetoothManager`(this)
+        if (enabled) {
+            dataPacketCount = 0
+            bluetoothStatus = "Keresés..."
 
-                // A connectAndListen() elindítása
-                manager.connectAndListen().collect { data ->
-                    if (!isBluetoothConnected) {
-                        isBluetoothConnected = true
-                        isScanning = false
-                        bluetoothStatus = "Csatlakozva"
+            bleJob = viewModelScope.launch {
+                try {
+                    val manager = SensoriaBluetoothManager(this)
+                    bluetoothManager = manager
+
+                    manager.connectAndListen(
+                        onStatusChange = { status ->
+                            // Csak akkor írjuk felül a státuszt a háttér-üzenetekkel, ha még nem jön adat
+                            if (!bluetoothStatus.startsWith("📡 Adat fogadva")) {
+                                bluetoothStatus = status
+                            }
+                        }
+                    ).collect { data ->
+                        dataPacketCount++
+                        bluetoothStatus = "📡 Adat fogadva ($dataPacketCount csomag)"
+                        processNewData(data)
                     }
-                    // Itt akár frissítheted a stabilitási pontszámot is élőben
-                    val score = StabilityCalculator.calculate(data)
-                    stabilityScore = "Stability: $score/100"
+                } catch (e: Exception) {
+                    println("Bluetooth hiba: ${e.message}")
+                } finally {
+                    // --- EZ A BLOKK MINDIG LEFUT A FOLYAMAT VÉGÉN ---
+
+                    // Ha a folyamat úgy ért véget, hogy a pipa Még MINDIG bent van,
+                    // az azt jelenti, hogy a zokni váratlanul lecsatlakozott!
+                    if (isBluetoothEnabled) {
+                        isBluetoothEnabled = false
+                        bluetoothStatus = "❌ Kapcsolat megszakadt (Eszköz lecsatlakozott)"
+                    }
+
+                    // Fizikai kapcsolat takarítása.
+                    // (A NonCancellable azért kell, mert egy már "lelőtt" szálon is muszáj lekapcsolnunk a Bluetooth-t)
+                    withContext(NonCancellable) {
+                        bluetoothManager?.disconnect()
+                    }
+                    bluetoothManager = null
                 }
-            } catch (e: Exception) {
-                isScanning = false
-                isBluetoothConnected = false
-                bluetoothStatus = "Hiba: ${e.message ?: "Ismeretlen hiba"}"
             }
+        } else {
+            // Ha TE kattintottál rá és vetted ki a pipát manuálisan:
+            bluetoothStatus = "Leválasztva"
+            // A job leállítása azonnal kiváltja a fenti 'finally' blokkot, ami elvégzi a fizikai leválasztást!
+            bleJob?.cancel()
         }
     }
 }
-

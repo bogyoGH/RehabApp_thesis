@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.Flow
 
 expect class SensoriaBluetoothManager(scope: CoroutineScope) {
 
-    suspend fun connectAndListen(): Flow<SensoriaData>
+    suspend fun connectAndListen(onStatusChange: (String) -> Unit): Flow<SensoriaData>
+
+    suspend fun disconnect()
 
 }
 

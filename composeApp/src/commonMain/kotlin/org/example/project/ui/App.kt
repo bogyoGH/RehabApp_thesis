@@ -27,20 +27,23 @@ fun App() {
         val viewModel = remember { SessionViewModel() }
         var currentScreen by remember { mutableStateOf<Screen>(Screen.Config) }
         val selectedTasks = remember { mutableStateListOf<ScheduledTask>() }
-        var patientId by remember { mutableStateOf("PT-001") }
+
+
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             when (currentScreen) {
                 is Screen.Config -> ConfigScreen(
-                    patientId = patientId,
-                    onPatientIdChange = { patientId = it },
+
+                    patientId = viewModel.patientId,
+                    onPatientIdChange = { viewModel.patientId = it },
                     selectedTasks = selectedTasks,
-                    // --- EZEK A SOROK HIÁNYZOTTAK ---
+
+                    // --- FRISSÍTETT BLUETOOTH BEKÖTÉS ---
+                    isBluetoothEnabled = viewModel.isBluetoothEnabled,
                     bluetoothStatus = viewModel.bluetoothStatus,
-                    isBluetoothConnected = viewModel.isBluetoothConnected,
-                    isScanning = viewModel.isScanning,
-                    onConnectBluetooth = { viewModel.connectToBluetooth() },
-                    // -------------------------------
+                    onToggleBluetooth = { isChecked -> viewModel.toggleBluetooth(isChecked) },
+                    // -----------------------------------
+
                     onStart = {
                         if (selectedTasks.isNotEmpty()) {
                             viewModel.startSession(selectedTasks)

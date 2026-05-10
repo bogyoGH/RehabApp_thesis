@@ -3,55 +3,75 @@ package org.example.project
 import com.benasher44.uuid.uuidFrom
 import com.juul.kable.Advertisement
 import com.juul.kable.Characteristic
+import com.juul.kable.Peripheral
 import com.juul.kable.Scanner
-import com.juul.kable.peripheral // Ezt az importot hozzá kell adni!
+import com.juul.kable.State
+import com.juul.kable.peripheral
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
 
 actual class SensoriaBluetoothManager actual constructor(private val scope: CoroutineScope) {
 
     private val targetCharUuidString = "1cac0003-656e-696c-4b5f-6e6572726157"
+    private var sock: Peripheral? = null // Itt tároljuk el a kapcsolatot a leválasztáshoz
 
-    // Visszatettük a 'suspend' kulcsszót!
-    actual suspend fun connectAndListen(): Flow<SensoriaData> {
-        println("🔍 Keresés indítása...")
+    actual suspend fun connectAndListen(onStatusChange: (String) -> Unit): Flow<SensoriaData> {
+        onStatusChange("🔍 Keresés indítása...")
 
-        // 1. Scanner inicializálása Kable módra
         val scanner = Scanner()
         val advertisement: Advertisement = scanner.advertisements.first { ad ->
-            ad.name == "Sensoria-C1-D348" || ad.identifier == "D6:1B:51:53:EF:E1" // Figyelem: címe helyett identifier a biztosabb iOS/Android multiplatform esetén
+            ad.name == "Sensoria-C1-D348"
         }
 
-        println("🟢 Zokni megtalálva! Csatlakozás...")
+        sock = scope.peripheral(advertisement)
 
-        // 2. Peripheral létrehozása a scope segítségével
-        val sock = scope.peripheral(advertisement)
-        sock.connect()
+        // HÁTTÉRBELI ÁLLAPOTFIGYELŐ
+        scope.launch {
+            var hasConnected = false
+            sock?.state?.collect { state ->
+                when (state) {
+                    is State.Connecting -> onStatusChange("⏳ Csatlakozás...")
+                    is State.Connected -> {
+                        hasConnected = true
+                        onStatusChange("✅ Csatlakoztatva (Várakozás adatra...)")
+                    }
+                    is State.Disconnecting -> onStatusChange("🔌 Leválasztás folyamatban...")
+                    is State.Disconnected -> {
+                        if (hasConnected) {
+                            onStatusChange("❌ Megszakadt a kapcsolat!")
+                        }
+                    }
+                }
+            }
+        }
+
+        sock?.connect()
 
         val targetCharUuid = uuidFrom(targetCharUuidString)
         var sensorCharacteristic: Characteristic? = null
 
-        val services = sock.services.filterNotNull().first()
-        for (service in services) {
-            for (char in service.characteristics) {
-                if (char.characteristicUuid == targetCharUuid) {
-                    sensorCharacteristic = char
-                    break
+        val services = sock?.services?.filterNotNull()?.first()
+        if (services != null) {
+            for (service in services) {
+                for (char in service.characteristics) {
+                    if (char.characteristicUuid == targetCharUuid) {
+                        sensorCharacteristic = char
+                        break
+                    }
                 }
+                if (sensorCharacteristic != null) break
             }
-            if (sensorCharacteristic != null) break
         }
 
         if (sensorCharacteristic == null) {
-            throw Exception("Nem találtam meg a megfelelő Bluetooth karakterisztikát a zoknin!")
+            throw Exception("Nem találtam meg a megfelelő karakterisztikát!")
         }
 
-        println("📡 Csatlakoztatva! Adatok fogadása...")
-
-        return sock.observe(sensorCharacteristic).mapNotNull { byteArray ->
+        return sock!!.observe(sensorCharacteristic).mapNotNull { byteArray ->
             if (byteArray.size < 20) return@mapNotNull null
 
             val reader = BitReader(byteArray)
@@ -85,5 +105,11 @@ actual class SensoriaBluetoothManager actual constructor(private val scope: Coro
                 accelZ = accelZ
             )
         }
+    }
+
+    // A LEVÁLASZTÁS FIZIKAI IMPLEMENTÁCIÓJA
+    actual suspend fun disconnect() {
+        sock?.disconnect()
+        sock = null
     }
 }
