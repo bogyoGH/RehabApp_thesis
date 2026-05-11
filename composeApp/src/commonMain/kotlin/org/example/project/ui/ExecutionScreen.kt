@@ -62,19 +62,37 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                         Text("No video", color = Color.DarkGray)
                     }
                 }
+                if (viewModel.isPreviewPhase) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)), // Enyhe sötétítés
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Text(
+                            text = "FIGYELJE A BEMUTATÓT!",
+                            color = Color(0xFFFFB74D),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
+                }
             }
 
-            // JOBB OLDAL: SAJÁT KAMERA (Ez most már újra a Row-n belül van, a bal oldali Box mellett)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(Color.Black)
-                    .clipToBounds()
-            ) {
-                CameraPreview(
-                    modifier = Modifier.fillMaxSize()
-                )
+            // JOBB OLDAL: SAJÁT KAMERA (CSAK AKKOR JELENIK MEG, HA A FELKÉSZÜLÉS VÉGET ÉRT!)
+            if (!viewModel.isPreviewPhase) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(Color.Black)
+                        .clipToBounds()
+                ) {
+                    CameraPreview(
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         } // A Row itt ér véget!
 
@@ -107,22 +125,29 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = viewModel.timerText,
-                    fontSize = 80.sp,
+                    fontSize = if (viewModel.isPreviewPhase) 48.sp else 80.sp, // Felkészüléskor kisebb a betű
                     fontWeight = FontWeight.Black,
-                    color = Color.White
+                    color = if (viewModel.isPreviewPhase) Color(0xFFFFB74D) else Color.White // Felkészüléskor narancssárga
                 )
-                Text(
-                    text = viewModel.stabilityScore,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.LightGray
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                LinearProgressIndicator(
-                    progress = viewModel.progressValue,
-                    modifier = Modifier.fillMaxWidth().height(12.dp),
-                    color = Color(0xFF4CAF50),
-                    trackColor = Color.DarkGray
-                )
+
+                // Stabilitást és Progress bart csak akkor mutatunk, ha már aktív a feladat
+                if (!viewModel.isPreviewPhase) {
+                    Text(
+                        text = viewModel.stabilityScore,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.LightGray
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    LinearProgressIndicator(
+                        progress = viewModel.progressValue,
+                        modifier = Modifier.fillMaxWidth().height(12.dp),
+                        color = Color(0xFF4CAF50),
+                        trackColor = Color.DarkGray
+                    )
+                } else {
+                    // Üres helyfoglaló, hogy ne ugráljon a UI
+                    Spacer(modifier = Modifier.height(36.dp))
+                }
             }
 
             // Stop gomb

@@ -56,6 +56,8 @@ class SessionViewModel {
 
     var sessionResult by mutableStateOf<FullSessionResult?>(null)
 
+    var isPreviewPhase by mutableStateOf(false)
+
     val standardRehabRoutine = mutableStateListOf(
         ScheduledTask.Preset(RehabTaskType.TANDEM_WALKING, duration = 30),
         ScheduledTask.Preset(RehabTaskType.REST, duration = 60),
@@ -102,6 +104,17 @@ class SessionViewModel {
             currentInstruction = "Kövesse a terapeuta utasításait."
             currentFallback = ""
         }
+        val isRestTask = currentTaskName.contains("Pihenő", ignoreCase = true)
+        if (!isRestTask) {
+            isPreviewPhase = true
+            for (second in 5 downTo 1) {
+                timerText = "Felkészülés: $second"
+                progressValue = 0f
+                delay(1000)
+            }
+        }
+
+        isPreviewPhase = false //
 
         // Időzítő ciklus - CSAK EGYSZER SZEREPEL!
         for (second in task.duration downTo 0) {
@@ -131,8 +144,8 @@ class SessionViewModel {
         }
     }
 
-     private fun processNewData(data: SensoriaData) {
-        if (!isRunning) return
+    private fun processNewData(data: SensoriaData) {
+        if (!isRunning || isPreviewPhase) return
 
         // Az adatcsomagot lemásoljuk és felcímkézzük az aktuális feladat nevével
         val taggedData = data.copy(taskName = currentTaskName)
@@ -161,6 +174,7 @@ class SessionViewModel {
         // 2. Csak a számolás UTÁN állítjuk true-ra, ami triggereli a képernyőváltást!
         sessionCompleted = true
     }
+
     private fun calculateFullAnalysis() {
         val segmented = SessionAnalyzer.segmentDataByTask(sessionData)
         val (activeTasks, restTasks) = SessionAnalyzer.separateTasks(segmented)
@@ -185,11 +199,12 @@ class SessionViewModel {
 
         // Egyedi feladatok elemzése (Tandem, Lábujjhegyen, stb.)
         activeTasks.forEach { (name, data) ->
-            resultsMap[name] = if (name.contains("walking", ignoreCase = true) || name.contains("járás", ignoreCase = true)) {
-                SessionAnalyzer.analyzeDynamicTask(data)
-            } else {
-                SessionAnalyzer.analyzeStaticTask(data)
-            }
+            resultsMap[name] =
+                if (name.contains("walking", ignoreCase = true) || name.contains("járás", ignoreCase = true)) {
+                    SessionAnalyzer.analyzeDynamicTask(data)
+                } else {
+                    SessionAnalyzer.analyzeStaticTask(data)
+                }
         }
 
         // VÉGEREDMÉNY MENTÉSE: Ez a változó adja át az adatokat a ResultsScreen-nek!
@@ -202,6 +217,7 @@ class SessionViewModel {
 
         println("Elemzés kész! Képernyőváltás indítása...")
     }
+
     private fun saveSessionToJson() {
         val now = Clock.System.now()
         val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds())
