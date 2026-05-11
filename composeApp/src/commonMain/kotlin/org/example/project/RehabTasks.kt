@@ -42,8 +42,20 @@ enum class RehabTaskType(
     ),
     TANDEM_WALKING(
         "Tandem walking",
-        "Walk heel-to-toe in a straight line",
-        "Heel-to-toe walking",
+        "Álljon úgy, hogy az egyik lába sarka érintse a másik lába lábujjait.",
+        "Kötéltáncos állás",
         "buffer"
-    )
+    ),
+    MARCHING_IN_PLACE(
+        "Helyben járás",
+        "Emelje magasra a térdeit ütemesen.",
+        "Masírozás helyben",
+        "buffer"
+    ),
+    REST(
+        "Pihenő",
+        "Lazítson és lélegezzen mélyeket a következő feladat előtt.",
+        "Álljon egy helyben",
+        "buffer"
+    ),
 }

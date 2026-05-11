@@ -2,6 +2,7 @@ package org.example.project
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.*
@@ -50,8 +51,22 @@ class SessionViewModel {
 
     private var bleJob: Job? = null
     private var bluetoothManager: SensoriaBluetoothManager? = null
-    fun startSession(tasks: List<ScheduledTask>) {
+
+    private var currentSessionMode = "Custom"
+
+    var sessionResult by mutableStateOf<FullSessionResult?>(null)
+
+    val standardRehabRoutine = mutableStateListOf(
+        ScheduledTask.Preset(RehabTaskType.TANDEM_WALKING, duration = 30),
+        ScheduledTask.Preset(RehabTaskType.REST, duration = 60),
+        ScheduledTask.Preset(RehabTaskType.MARCHING_IN_PLACE, duration = 45),
+        ScheduledTask.Preset(RehabTaskType.REST, duration = 60),
+        ScheduledTask.Preset(RehabTaskType.TOE_WALKING, duration = 30)
+    )
+
+    fun startSession(tasks: List<ScheduledTask>, mode: String = "Custom") {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
+        currentSessionMode = mode
         sessionCompleted = false
         scheduledTasksForExport = tasks
         isRunning = true
@@ -70,40 +85,61 @@ class SessionViewModel {
         }
     }
 
+    fun startStandardRehab() {
+        startSession(standardRehabRoutine, mode = "Standard")
+    }
+
     private suspend fun runTask(task: ScheduledTask) {
-        currentTaskName = task.displayName // A 1. lépésben bevezetett közös nevet használjuk
+        currentTaskName = task.displayName
+
+        // Feladat instrukcióinak beállítása
         if (task is ScheduledTask.Preset) {
-            currentVideoName = when {
-                task is ScheduledTask.Preset && task.type.videoName.isNotBlank() -> task.type.videoName
-                else -> null  // Ha nincs videó, ne próbálja betölteni
-            }
+            currentVideoName = if (task.type.videoName.isNotBlank()) task.type.videoName else null
             currentInstruction = task.type.instruction
             currentFallback = task.type.fallback
-
         } else {
             currentVideoName = "buffer"
-            currentInstruction = "Kövesse a terapeuta utasításait a gyakorlat végrehajtásához."
+            currentInstruction = "Kövesse a terapeuta utasításait."
             currentFallback = ""
         }
+
+        // Időzítő ciklus - CSAK EGYSZER SZEREPEL!
         for (second in task.duration downTo 0) {
             timerText = second.toString().padStart(2, '0')
             progressValue = (task.duration - second).toFloat() / task.duration
 
-            // Ha nincs bekapcsolva a Bluetooth, akkor MOCK adatot generálunk a UI kedvéért
+            // MOCK ADAT GENERÁLÁSA 25 Hz-en
             if (!isBluetoothEnabled) {
-                val mockPacket = MockDataGenerator.generatePacket(currentTaskName)
-                processNewData(mockPacket)
+                for (i in 0 until 25) {
+                    val mockPacket = MockDataGenerator.generatePacket(currentTaskName)
+                    processNewData(mockPacket)
+                }
             }
-            // (Ha be van kapcsolva a Bluetooth, akkor az adatokat a connectAndListen flow-ja adja)
 
             delay(1000)
         }
     }
 
-    private fun processNewData(data: SensoriaData) {
-        sessionData.add(data) //
-        // A számítást az új kalkulátor végzi
-        val score = StabilityCalculator.calculate(data)
+    fun updateStandardTaskDuration(index: Int, durationStr: String) {
+        // Ha üres a string (mert a felhasználó kitörölte), 0-ként tároljuk el
+        val duration = if (durationStr.isEmpty()) 0 else durationStr.toIntOrNull() ?: 0
+
+        val currentTask = standardRehabRoutine[index]
+        if (currentTask is ScheduledTask.Preset) {
+            // Frissítjük a listát a másolattal
+            standardRehabRoutine[index] = currentTask.copy(duration = duration)
+        }
+    }
+
+     private fun processNewData(data: SensoriaData) {
+        if (!isRunning) return
+
+        // Az adatcsomagot lemásoljuk és felcímkézzük az aktuális feladat nevével
+        val taggedData = data.copy(taskName = currentTaskName)
+        sessionData.add(taggedData)
+
+        // A stabilitást a felcímkézett adatok alapján számoljuk
+        val score = StabilityCalculator.calculate(taggedData)
         stabilityScore = "Stability: $score/100"
     }
 
@@ -115,11 +151,57 @@ class SessionViewModel {
 
     private fun finishSession() {
         isRunning = false
-        sessionCompleted = true
         currentTaskName = "All Tasks Completed!" //
-        saveSessionToJson()
-    }
+        calculateFullAnalysis()
+        saveSessionToJson() // Először kimentjük az adatokat
 
+        // 1. Kiszámoljuk az összes eredményt és feltöltjük a sessionResult változót
+
+
+        // 2. Csak a számolás UTÁN állítjuk true-ra, ami triggereli a képernyőváltást!
+        sessionCompleted = true
+    }
+    private fun calculateFullAnalysis() {
+        val segmented = SessionAnalyzer.segmentDataByTask(sessionData)
+        val (activeTasks, restTasks) = SessionAnalyzer.separateTasks(segmented)
+
+        val resultsMap = mutableMapOf<String, Any>()
+
+        // Fáradási index kiszámítása
+        val activeTaskNames = activeTasks.keys.toList()
+        var fatigue = 0.0
+
+        if (activeTaskNames.size >= 2) {
+            val firstTaskData = activeTasks[activeTaskNames.first()]!!
+            val lastTaskData = activeTasks[activeTaskNames.last()]!!
+
+            val firstStability = firstTaskData.map { StabilityCalculator.calculate(it) }.average()
+            val lastStability = lastTaskData.map { StabilityCalculator.calculate(it) }.average()
+
+            if (firstStability > 0) {
+                fatigue = ((firstStability - lastStability) / firstStability) * 100
+            }
+        }
+
+        // Egyedi feladatok elemzése (Tandem, Lábujjhegyen, stb.)
+        activeTasks.forEach { (name, data) ->
+            resultsMap[name] = if (name.contains("walking", ignoreCase = true) || name.contains("járás", ignoreCase = true)) {
+                SessionAnalyzer.analyzeDynamicTask(data)
+            } else {
+                SessionAnalyzer.analyzeStaticTask(data)
+            }
+        }
+
+        // VÉGEREDMÉNY MENTÉSE: Ez a változó adja át az adatokat a ResultsScreen-nek!
+        sessionResult = FullSessionResult(
+            taskResults = resultsMap,
+            rawTaskData = activeTasks, // Itt adjuk át a nyers adatokat a grafikonokhoz!
+            fatigueIndex = fatigue.coerceAtLeast(0.0),
+            globalFogEvents = SessionAnalyzer.detectFreezingOfGait(sessionData)
+        )
+
+        println("Elemzés kész! Képernyőváltás indítása...")
+    }
     private fun saveSessionToJson() {
         val now = Clock.System.now()
         val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds())
@@ -132,8 +214,8 @@ class SessionViewModel {
                 sessionId = sessionId,
                 patientId = patientId,
                 timeStamp = localDateTime.toString(),
-                mode = "Offline",
-                bluetoothEnabled = false,
+                mode = if (isBluetoothEnabled) "Online" else "Offline",
+                bluetoothEnabled = isBluetoothEnabled,
                 tasks = scheduledTasksForExport.map { ExportedTasks(it.displayName, it.duration) }
             ),
             sensorData = sessionData.map { d ->
@@ -178,9 +260,13 @@ class SessionViewModel {
                             }
                         }
                     ).collect { data ->
-                        dataPacketCount++
-                        bluetoothStatus = "📡 Adat fogadva ($dataPacketCount csomag)"
-                        processNewData(data)
+                        if (isBluetoothEnabled) {
+                            dataPacketCount++
+                            bluetoothStatus = "📡 Adat fogadva ($dataPacketCount csomag)"
+
+                            // Ez küldi el a központi feldolgozónak, ami majd felcímkézi a task nevével
+                            processNewData(data)
+                        }
                     }
                 } catch (e: Exception) {
                     println("Bluetooth hiba: ${e.message}")

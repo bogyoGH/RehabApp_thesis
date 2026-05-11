@@ -1,31 +1,21 @@
 package org.example.project.ui
 
-/**
- * ÖTLET:
- * lehetne a cofigscreenen egy costume task gomb, ahol simán be lehet rakni egyedileg választott
- * gyakorlatokat egymás után -> gomb lenne -> megnyit egy másik oldalt ->
- * feladatok felsorova, esetleg némi leírás, hogy az egyes gyakorlatok mit fejlesztenek
- * mellettük plusz jel és be lehetne állítani mennyi időre ->
- * onnan start session
- *
- *szintén a configtaskon egy gomb, hogy rehab sessions (vagy vmi hasonló) szintén új screenen rehabilitációs gyakorlatsorozatok, allattuk szintén leírva hogy melyik mire hasznos
- * -> előre meghatározott costume task listák - rákkattintva listázza a gyakorlatokat, időtartammal ->
- * esetleg módosítani lehetne
- */
-
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-// Importáljuk a modelljeinket a fő csomagból
+import androidx.compose.ui.unit.sp
 import org.example.project.RehabTaskType
 import org.example.project.ScheduledTask
 
@@ -34,11 +24,17 @@ import org.example.project.ScheduledTask
 fun ConfigScreen(
     patientId: String,
     onPatientIdChange: (String) -> Unit,
-    selectedTasks: MutableList<ScheduledTask>,
+    selectedTasks: MutableList<ScheduledTask>, // Custom session listája
+
+    // Standard Rehab Session paraméterei
+    standardTasks: List<ScheduledTask>,
+    onStandardTaskDurationChange: (Int, String) -> Unit,
+    onStartRehab: () -> Unit,
+
     isBluetoothEnabled: Boolean,
     bluetoothStatus: String,
     onToggleBluetooth: (Boolean) -> Unit,
-    onStart: () -> Unit,
+    onStartCustom: () -> Unit, // Átnevezve az egyértelműség kedvéért
     onClearSession: () -> Unit,
     onOpenSavedSessions: () -> Unit
 ) {
@@ -47,46 +43,103 @@ fun ConfigScreen(
     var taskDuration by remember { mutableStateOf("15") }
     var showClearSessionDialog by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    // A teljes képernyő görgethető
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         Text("Session Configuration", style = MaterialTheme.typography.headlineMedium, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
 
+        // --- 1. BLOKK: BLUETOOTH WIDGET ---
         Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = isBluetoothEnabled,
-                        onCheckedChange = { isChecked -> onToggleBluetooth(isChecked) },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFF4CAF50),
-                            uncheckedColor = Color.LightGray
-                        )
+                        onCheckedChange = { onToggleBluetooth(it) },
+                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFF4CAF50), uncheckedColor = Color.LightGray)
                     )
                     Text("Bluetooth kapcsolat", fontWeight = FontWeight.Bold)
 
-                    // Pörgő ikon, amíg keres vagy csatlakozik
                     if (bluetoothStatus.contains("Keresés") || bluetoothStatus.contains("Csatlakozás")) {
                         Spacer(Modifier.width(8.dp))
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     }
                 }
-
-                // Dinamikus státuszszöveg színezés
                 Text(
                     text = "Státusz: $bluetoothStatus",
                     style = MaterialTheme.typography.bodySmall,
                     color = when {
-                        bluetoothStatus.contains("Hiba") || bluetoothStatus.contains("Megszakadt") -> Color(0xFFEF5350) // Piros
-                        bluetoothStatus.contains("Adat fogadva") -> Color(0xFF4CAF50) // Zöld
-                        bluetoothStatus.contains("Csatlakoztatva") -> Color(0xFF64B5F6) // Kék
-                        else -> Color.LightGray // Alapértelmezett (pl. Leválasztva)
+                        bluetoothStatus.contains("Hiba") || bluetoothStatus.contains("Megszakadt") -> Color(0xFFEF5350)
+                        bluetoothStatus.contains("Adat fogadva") -> Color(0xFF4CAF50)
+                        bluetoothStatus.contains("Csatlakoztatva") -> Color(0xFF64B5F6)
+                        else -> Color.LightGray
                     }
                 )
             }
         }
+
+        // --- 2. BLOKK: STANDARD REHAB SESSION ---
+        Text("Standard Rehab Routine", style = MaterialTheme.typography.titleMedium, color = Color(0xFF4CAF50))
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Feladatok felsorolása módosítható idővel
+                standardTasks.forEachIndexed { index, task ->
+                    Row(
+                        modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(task.displayName, modifier = Modifier.weight(1f))
+                        OutlinedTextField(
+                            value = if (task.duration == 0) "" else task.duration.toString(),
+                            onValueChange = { newValue ->
+                                // Csak számokat engedünk be, de az üres stringet is továbbadjuk a ViewModelnek
+                                if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                                    onStandardTaskDurationChange(index, newValue)
+                                }
+                            },
+                            label = { Text("Sec") },
+                            modifier = Modifier.width(80.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number) // Számbillentyűzet felugrása
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Start Rehab Session Gomb
+                Button(
+                    onClick = onStartRehab,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("START REHAB SESSION", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+        HorizontalDivider(color = Color.DarkGray, thickness = 1.dp)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --- 3. BLOKK: CUSTOM SESSION BUILDER ---
+        Text("Custom Session Builder", style = MaterialTheme.typography.titleMedium, color = Color(0xFF9C27B0))
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = patientId,
             onValueChange = onPatientIdChange,
@@ -94,8 +147,9 @@ fun ConfigScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Legördülő menüs hozzáadás
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -107,25 +161,18 @@ fun ConfigScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 OutlinedTextField(
-                    value = selectedTaskType?.displayName ?: "Select task...",
+                    value = selectedTaskType?.displayName ?: "Válassz feladatot...",
                     onValueChange = {},
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier.menuAnchor().fillMaxWidth(),
-                    label = { Text("Task Type") }
+                    label = { Text("Feladat típus") }
                 )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     RehabTaskType.entries.forEach { taskType ->
                         DropdownMenuItem(
                             text = { Text(taskType.displayName) },
-                            onClick = {
-                                selectedTaskType = taskType
-                                expanded = false
-                            }
+                            onClick = { selectedTaskType = taskType; expanded = false }
                         )
                     }
                 }
@@ -150,29 +197,26 @@ fun ConfigScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            items(selectedTasks) { task ->
+        // Custom feladatok listája
+        // LazyColumn helyett sima Column-t használunk, mert a szülő már görgethető
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
+            selectedTasks.forEach { task ->
                 Card(
                     modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(task.displayName, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
                         Text("${task.duration}s", color = Color.Gray, modifier = Modifier.padding(horizontal = 8.dp))
                         IconButton(onClick = { selectedTasks.remove(task) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color(0xFFEF5350))
+                            Icon(Icons.Default.Delete, contentDescription = "Törlés", tint = Color(0xFFEF5350))
                         }
                     }
                 }
             }
         }
 
-        // A gombok sorát külön vettem a dialógustól
+        // --- 4. BLOKK: ALSÓ AKCIÓGOMBOK ---
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -180,14 +224,14 @@ fun ConfigScreen(
             Button(
                 onClick = { showClearSessionDialog = true },
                 modifier = Modifier.weight(1f).height(56.dp),
-                enabled = selectedTasks.isNotEmpty(), // Csak akkor aktív, ha van mit törölni
+                enabled = selectedTasks.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
             ) {
                 Text("CLEAR SESSION", fontWeight = FontWeight.Bold)
             }
 
             Button(
-                onClick = onStart,
+                onClick = onStartCustom,
                 modifier = Modifier.weight(1f).height(56.dp),
                 enabled = selectedTasks.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
@@ -196,7 +240,7 @@ fun ConfigScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedButton(
             onClick = onOpenSavedSessions,
@@ -204,32 +248,26 @@ fun ConfigScreen(
         ) {
             Text("SAVED SESSIONS")
         }
+
+        Spacer(modifier = Modifier.height(32.dp)) // Extra hely a görgetés végén
     }
 
-    // A dialógust kivettem a Row-ból, és a funkció végére raktam (ahogy a Compose-ban szokás)
+    // Megerősítő dialógus
     if (showClearSessionDialog) {
         AlertDialog(
             onDismissRequest = { showClearSessionDialog = false },
             title = { Text("Törlés megerősítése") },
-            text = { Text("Biztosan szeretné törölni a feladatokat?") },
+            text = { Text("Biztosan szeretné törölni az egyedileg összeállított feladatokat?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        onClearSession() // A fentről kapott lambdát hívjuk meg
-                        showClearSessionDialog = false
-                    }
-                ) {
+                TextButton(onClick = { onClearSession(); showClearSessionDialog = false }) {
                     Text("Igen", color = Color(0xFFEF5350))
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showClearSessionDialog = false }
-                ) {
+                TextButton(onClick = { showClearSessionDialog = false }) {
                     Text("Nem", color = Color.White)
                 }
-            },
-            containerColor = MaterialTheme.colorScheme.surface
+            }
         )
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -37,43 +38,45 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
         )
 
         // --- 2. BLOKK: EGYYMÁS MELLETTI VIDEÓK (50-50%) ---
-        // A Row-ról levesszük a paddinget, hogy a teljes szélességet kihasználja
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(600.dp) // Beállíthatod 500.dp-re is, ha nagyobb kijelzőre tervezel
+                .height(600.dp)
         ) {
             // BAL OLDAL: FELADAT VIDEÓ
             Box(
                 modifier = Modifier
-                    .weight(1f) // Pontosan a szélesség fele
+                    .weight(1f)
                     .fillMaxHeight()
                     .background(Color.Black)
-                    .clipToBounds() // Levágja a kilógó részeket, nem engedi át a kamera oldalára
+                    .clipToBounds()
             ) {
-                viewModel.currentVideoName?.let { videoName ->
-                    VideoPlayer(
-                        videoName = videoName,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No video", color = Color.DarkGray)
+                // A key ide kerül, a viewModel.currentTaskName-t vagy currentVideoName-t figyeli
+                key(viewModel.currentVideoName) {
+                    viewModel.currentVideoName?.let { videoName ->
+                        VideoPlayer(
+                            videoName = videoName,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("No video", color = Color.DarkGray)
+                    }
                 }
             }
 
-            // JOBB OLDAL: SAJÁT KAMERA
+            // JOBB OLDAL: SAJÁT KAMERA (Ez most már újra a Row-n belül van, a bal oldali Box mellett)
             Box(
                 modifier = Modifier
-                    .weight(1f) // Pontosan a szélesség másik fele
+                    .weight(1f)
                     .fillMaxHeight()
                     .background(Color.Black)
-                    .clipToBounds() // Megakadályozza, hogy a kamera képe "belemásszon" a videóba
+                    .clipToBounds()
             ) {
                 CameraPreview(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-        }
+        } // A Row itt ér véget!
 
         // --- 3. BLOKK: INSTRUKCIÓK, IDŐZÍTŐ ÉS GOMBOK ---
         Column(
