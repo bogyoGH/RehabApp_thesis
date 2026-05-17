@@ -1,0 +1,84 @@
+\section{A Sensoria okoszokni integrációja}
+
+Az alkalmazás egyik központi eleme a Sensoria okoszokniból érkező szenzoradatok kezelése. A
+zokni külső mérőeszközként kapcsolódik az alkalmazáshoz, és a gyakorlatok végrehajtása közben
+folyamatosan küldi az adatokat. A feladat ezért nemcsak az adatok fogadása volt, hanem azok
+értelmezése és olyan formába alakítása is, amely az alkalmazás további részei számára már
+feldolgozható.
+
+A kommunikáció Bluetooth Low Energy-kapcsolaton keresztül történik. A kapcsolat kezeléséért egy külön
+komponens felel, amely az okoszoknihoz való csatlakozást, a kapcsolat állapotának figyelését és az
+adatcsomagok fogadását végzi. Ez azért különösen fontos, mert a Bluetooth-kommunikáció platformfüggő
+és állapotérzékeny folyamat: kezelni kell a csatlakozás létrejöttét, az esetleges kapcsolatvesztést,
+valamint azt is, hogy az adatok csak sikeres kapcsolat esetén kerüljenek feldolgozásra.
+
+Az alkalmazás egy \code{ScanFilter} segítségével a Sensoria szolgáltatáshoz tartozó UUID alapján szűri
+az elérhető eszközöket. Emellett az eszköz neve alapján is ellenőrzi, hogy valóban a zokniról van-e szó.
+Amikor megtalálja a megfelelő eszközt, leállítja a keresést, majd \code{connectGatt} hívással GATT-
+kapcsolatot hoz létre a zoknival. A GATT, vagyis a Generic Attribute Profile, a Bluetooth Low Energy
+eszközök közötti adatkommunikáció egyik alapvető modellje. Ebben a felépítésben az okoszokni
+szerverként működik, amely különböző szolgáltatásokat és azokon belül characteristic-eket tesz
+elérhetővé. Az alkalmazás kliensként kapcsolódik ehhez a szerverhez, majd a megfelelő szolgáltatáson
+keresztül fogadja a mérési adatokat.
+
+A kapcsolat felépítése után indul a BLE service discovery folyamat. Ennek során az alkalmazás
+megkeresi a Sensoria szolgáltatáshoz tartozó service UUID-t, majd azon belül kiválasztja azt a
+characteristic-et, amely támogatja a \code{NOTIFY} vagy \code{INDICATE} tulajdonságokat. A
+characteristic-ek a BLE szolgáltatáson belüli adattároló vagy adatküldő pontokként értelmezhetők.
+A \code{NOTIFY} azt jelenti, hogy az eszköz új adat érkezésekor automatikusan értesítést küld a
+kliensnek, visszaigazolás nélkül. Az \code{INDICATE} ehhez hasonlóan működik, de a kliens oldaláról
+visszaigazolást is igényel. Erre azért van szükség, mert a szenzoradatok nem egyszeri lekérdezéssel
+érkeznek, hanem a zokni folyamatosan küldi őket a mérés során.
+
+Az értesítések fogadásához az alkalmazás engedélyezi a kiválasztott characteristic notification
+funkcióját. Ehhez a Client Characteristic Configuration Descriptor, röviden CCCD, beállítása szükséges.
+Ez azt határozza meg, hogy a kliens kér-e értesítéseket vagy indikációkat az adott characteristic
+változásairól. A beállítás után a zokni képes folyamatosan továbbítani az új
+szenzoradatokat az alkalmazás felé.
+
+A beérkező adatok kezelése callback-alapúan történik. Amikor a zokni új adatcsomagot küld,
+az Android rendszer meghívja az \code{onCharacteristicChanged} függvényt. A megvalósítás figyelembe
+veszi, hogy Android 13-tól megváltozott ennek a függvénynek a szignatúrája, ezért a kódban a régebbi
+és az újabb API-verzióhoz tartozó változat is szerepel. Mindkét esetben a beérkező bájttömb kerül
+továbbításra a csomagfeldolgozó logikának.
+
+A szenzoradatok továbbítása az alkalmazás többi része felé Kotlin Flow segítségével valósul meg.
+A \code{connectAndListen} függvény egy \code{Flow<SensoriaData>} típust ad vissza, amelybe a beérkező
+és sikeresen dekódolt mérési adatok kerülnek. A callback-alapú Android BLE működés és a
+coroutine-alapú alkalmazáslogika összekapcsolására a megvalósítás \code{callbackFlow}-t használ.
+Ez lehetővé teszi, hogy a Bluetooth callbackekből érkező események reaktív adatfolyamként
+jelenjenek meg az alkalmazás többi komponense számára. A kapcsolat lezárásakor az \code{awaitClose}
+blokk gondoskodik a scan leállításáról, a GATT-kapcsolat bontásáról és az erőforrások felszabadításáról.
+
+A nyers adatcsomagok dekódolását külön logika végzi. A Sensoria okoszokniból érkező bájtok nem
+közvetlenül értelmezhetőek, ezért az alkalmazás bitenként olvassa ki belőlük a szükséges mezőket.
+Ehhez a \code{BitReader} segédosztályt használja, amely egy bájttömbből megadott számú bitet tud
+sorban kiolvasni. A dekódolás során az alkalmazás először átugorja a csomag fejlécéhez és metaadataihoz
+tartozó mezőket, például az üzenettípust, a kontextust és az időzítési mezőket, majd kiolvassa a mérés
+szempontjából fontos értékeket.
+
+A feldolgozás során három nyomáscsatorna és három gyorsulási komponens kerül kinyerésre.
+A \code{ch0}, \code{ch1} és \code{ch2} mezők a talp különböző pontjain mért nyomásértékeket
+reprezentálják, míg az \code{accelX}, \code{accelY} és \code{accelZ} a láb három tengely menti
+gyorsulását tartalmazzák. A csomagban található magnetométer-adatokat az alkalmazás jelenlegi
+verziója kiolvassa, de nem használja fel az eredményképzéshez. A dekódolás eredménye egy
+\code{SensoriaData} objektum, amely már strukturált formában tartalmazza a további feldolgozáshoz
+szükséges adatokat.
+
+A \code{SensoriaData} adatmodell a szenzorból származó mérési értékek mellett időbélyeget is tartalmaz.
+Ez azért fontos, mert a szenzoradatok sorrendje és időbeli elhelyezkedése a későbbi feldolgozás során
+is lényeges. Az adatmodellben szerepel a feladathoz tartozó információ is, így az egyes mérési pontok
+összekapcsolhatók azzal a gyakorlattal, amelynek végrehajtása közben keletkeztek.
+
+A szenzoradatok az aktuális munkamenethez kapcsolódva kerülnek eltárolásra.
+A mérés indításakor az alkalmazás elkezdi gyűjteni a \code{Flow}-ból érkező \code{SensoriaData}
+objektumokat, majd ezeket a feladatokhoz és a munkamenethez rendeli.
+A mérés lezárásakor az összegyűjtött adatok a többi munkamenet-információval együtt mentésre kerülnek.
+Így egy korábbi mérés visszatöltésekor nemcsak a munkamenet alapadatai, hanem a hozzá tartozó
+szenzoros mérési adatok is elérhetők.
+
+A megvalósítás során az Android Bluetooth-jogosultságok kezelésére is figyelni kellett. Újabb Android-
+verziókon a Bluetooth-eszközök kereséséhez és a kapcsolódáshoz külön engedélyek szükségesek, például
+a \code{BLUETOOTH\_SCAN} és a \code{BLUETOOTH\_CONNECT}. Régebbi verziókon a BLE scan működéséhez
+helymeghatározási jogosultságra is szükség lehet. Az alkalmazás ezért a Bluetooth-műveletek indítása
+előtt ellenőrzi, hogy a szükséges rendszerengedélyek rendelkezésre állnak-e.

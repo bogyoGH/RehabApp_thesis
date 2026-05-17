@@ -1,0 +1,32 @@
+\section{Adattárolás és Export}
+
+Az alkalmazásban az adattárolás a mérés lezárásához kapcsolódik. A munkamenet közben a rendszer
+folyamatosan gyűjti az aktuális gyakorlathoz tartozó adatokat, de ezek csak akkor kerülnek
+véglegesen mentésre, ha a felhasználó szabályosan befejezi a mérést.
+Amennyiben a munkamenet megszakításra kerül, az alkalmazás nem hoz létre mentett eredményt,
+így elkerülhető, hogy hiányos adatok alapján készüljön későbbi elemzés vagy megjelenítés.
+
+
+A mentés előtt az alkalmazás összeállítja a teljes munkamenetet leíró adatszerkezetet.
+Ebbe bekerül a felhasználó neve, a mérés időpontja, a kiválasztott feladatok listája,
+az egyes feladatokhoz tartozó időtartam, valamint a gyakorlatok alatt rögzített szenzoradatok.
+A cél az volt, hogy egy mentett munkamenet önmagában is értelmezhető legyen, vagyis később ne csak
+a nyers mérési pontok legyenek elérhetők, hanem azok a körülmények is, amelyek között az adatok
+keletkeztek.
+
+A munkamenet adatai exportálható formában kerülnek összeállításra. A megvalósítás során ehhez külön
+exportobjektumokat, amelyek a mentéshez szükséges adatokat rendezett struktúrába foglalják.
+Ez azért volt fontos, mert az alkalmazás belső állapota nem minden esetben egyezik meg azzal a
+formával, amely hosszú távú tárolásra vagy külső feldolgozásra alkalmas.
+A mentéshez ezért az aktuális állapotból egy külön exportobjektum készül, amely csak a később
+is szükséges, rekonstruálható adatokat tartalmazza.
+
+A fájlba mentés strukturált szöveges formátumban történik (.json),
+amely alkalmas arra, hogy az adatok később visszaolvashatók vagy más eszközökkel
+feldolgozhatók legyenek. A mentett fájl a telefon tárhelyén jön létre, és a munkamenet
+azonosításához szükséges információk alapján később listázható. A fájlnevek és a tárolt metaadatok
+célja, hogy több mérés esetén is egyértelműen megkülönböztethetők legyenek az egyes munkamenetek.
+
+
+
+

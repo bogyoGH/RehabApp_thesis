@@ -20,7 +20,11 @@ import androidx.compose.ui.unit.sp
 import org.example.project.*
 
 @Composable
-fun ResultsScreen(result: FullSessionResult, onBack: () -> Unit) {
+fun ResultsScreen(
+    result: FullSessionResult,
+    onBackToMenu: () -> Unit,
+    onGoToSavedSessions: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,11 +78,10 @@ fun ResultsScreen(result: FullSessionResult, onBack: () -> Unit) {
         HorizontalDivider(color = Color.DarkGray, thickness = 1.dp)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 5. ÚJ RÉSZ: Részletes Feladat Eredmények (Még mindig a Column-on belül!)
+        // 5. Részletes Feladat Eredmények
         Text("Részletes Feladat Eredmények", style = MaterialTheme.typography.titleMedium, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Végigmegyünk a ViewModel által kiszámolt eredményeken
         result.taskResults.forEach { (taskName, taskData) ->
             Card(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -88,7 +91,6 @@ fun ResultsScreen(result: FullSessionResult, onBack: () -> Unit) {
                     Text(taskName, fontWeight = FontWeight.Bold, color = Color(0xFF64B5F6))
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Ha dinamikus feladat (pl. járás)
                     if (taskData is DynamicAnalysisResult) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Lépésszám: ${taskData.stepCount}", color = Color.LightGray)
@@ -98,9 +100,7 @@ fun ResultsScreen(result: FullSessionResult, onBack: () -> Unit) {
                             "Amplitúdó csökkenés (Fáradás): ${taskData.amplitudeDropoff.toInt()}%",
                             color = Color.LightGray
                         )
-                    }
-                    // Ha statikus feladat (pl. állás)
-                    else if (taskData is StaticAnalysisResult) {
+                    } else if (taskData is StaticAnalysisResult) {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Remegés index: ${taskData.tremorIndex.toInt()}", color = Color.LightGray)
                             Text(
@@ -116,16 +116,33 @@ fun ResultsScreen(result: FullSessionResult, onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Gomb a legvégén
-        Button(
-            onClick = onBack,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(12.dp)
+        // 6. Navigációs Gombok
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("VISSZA A FŐMENÜBE", fontWeight = FontWeight.Bold)
+            Button(
+                onClick = onBackToMenu,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("VISSZA A FŐMENÜBE", fontWeight = FontWeight.Bold)
+            }
+
+            OutlinedButton(
+                onClick = onGoToSavedSessions,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("MENTETT MÉRÉSEK", fontWeight = FontWeight.Bold)
+            }
         }
-    } // Itt zárul a Column!
-} // Itt zárul a ResultsScreen!
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+// --- Vizuális Segédkomponensek ---
 
 @Composable
 fun InfoCard(modifier: Modifier, title: String, value: String, color: Color) {
@@ -140,13 +157,11 @@ fun InfoCard(modifier: Modifier, title: String, value: String, color: Color) {
     }
 }
 
-// --- Vizuális Komponensek ---
-
 @Composable
 fun FootHeatmap(data: List<SensoriaData>) {
-    val avgCh0 = data.map { it.ch0 }.average().toFloat()
-    val avgCh1 = data.map { it.ch1 }.average().toFloat()
-    val avgCh2 = data.map { it.ch2 }.average().toFloat()
+    val avgCh0 = if (data.isNotEmpty()) data.map { it.ch0 }.average().toFloat() else 0f
+    val avgCh1 = if (data.isNotEmpty()) data.map { it.ch1 }.average().toFloat() else 0f
+    val avgCh2 = if (data.isNotEmpty()) data.map { it.ch2 }.average().toFloat() else 0f
     val maxVal = 1023f // Sensoria max értéke
 
     Canvas(modifier = Modifier.size(200.dp).padding(16.dp)) {

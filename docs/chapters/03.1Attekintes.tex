@@ -1,0 +1,46 @@
+\subsection{Az alkalmazás áttekintése}
+
+A fejlesztett alkalmazás elsősorban Android operációs rendszerre készült.
+A projekt technológiai alapját a Kotlin Multiplatform adja, amely lehetővé teszi, hogy
+az alkalmazás üzleti logikájának és adatkezelésének egy része platformfüggetlen módon készüljön el.
+Ennek előnye, hogy a közös kódrészek a későbbiekben más platformokon, például iOS-en is
+újrahasználhatók lehetnek. Az iOS-verzió tényleges implementálása és tesztelése azonban
+teszteszköz hiányában jelen munka keretében nem történt meg, ezért a dolgozat elsősorban
+az Androidos megvalósításra fókuszál.
+A fejlesztés nyelve Kotlin volt, amely az Android-fejlesztésben széles körben támogatott,
+modern programozási nyelv. A Java nyelvvel való együttműködése miatt jól illeszkedik az
+Android környezetbe, ugyanakkor számos olyan nyelvi funkciót kínál, amely megkönnyíti
+a biztonságosabb és átláthatóbb kód írását, például tömörebb szintaxis és az adatosztályok haszálta
+ Ezek a tulajdonságok különösen hasznosak egy olyan alkalmazás esetében, ahol többféle állapotot,
+munkamenetet, szenzoradatot és felhasználói interakciót kell kezelni.
+
+A felhasználói felület Compose-alapú komponensekből épül fel, így az egyes képernyők
+deklaratív módon írják le az alkalmazás megjelenítését és az adott állapothoz tartozó
+felhasználói interakciókat. A rendszer felépítése több, egymástól elkülönített komponensből áll:
+
+\begin{itemize}
+    \item A felhaszálói felületet megvalósító képernyőkre
+    \item A munkamenet állapotát kezelő logikára
+    \item A szenzoradatok fogadását és feldolgozásáért felelős részekre
+    \item Adattárolási és visszakeresési mechanizmusokra
+    \item Eredmények megjelenítésére szolgáló komponensekre
+\end{itemize}
+
+Ezek a komponensek együttműködve alkotják meg a teljes alkalmazást és a következő felhasználói
+folyamatot valósítják meg:
+
+\begin{enumerate}
+    \item Az alkalmazás indítása, mely során a főképernyő jelenik meg
+    \item A zokni csatlakoztatása és a szenzoradatok fogadásának megkezdése
+    \item A gyakorlatok listájának megjelenítése, amely lehet előre meghatározott vagy
+    felhasználó által kiválasztott gyakorlatokat tartalmazhat
+    \item A mérés indítása
+    \item A szenzoradatok valós idejű fogadása, illetve a gyakorlatok végrehajtásának videós
+    megjelenítése
+    \item A mérés lezárása, amely során a gyakorlatokhoz kapcsolódó adatok mentése történik
+    \item A mérés eredményeinek megjelenítése, amely lehetőséget ad a gyakorlatok áttekintésére és összehasonlítására
+    \item A korábban rögzített munkamenetek visszakeresése és megtekintése
+\end{enumerate}
+
+A dokumentáció a további fejezetekben ezeknek a komponenseknek a részletes ismertetésére,
+valamint a fejlesztés során felmerülő kihívásokra és megoldásokra fókuszál.

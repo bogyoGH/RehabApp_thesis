@@ -1,0 +1,86 @@
+\section{Eredmények számítása és megjelenítése}
+
+A bemeneti adatok feladatonként címkézett mérési pontokból állnak, amelyek tartalmazzák a talpi
+nyomáscsatornák értékeit, a háromtengelyű gyorsulási adatokat, az időbélyeget és az adott gyakorlat
+nevét. Az elemzés célja nem orvosi diagnózis készítése, hanem olyan összesített mutatók előállítása,
+amelyek segítik a munkamenet későbbi áttekintését és összehasonlítását.
+
+Az elemzés első lépése az adatok szegmentálása. A rendszer a rögzített adatpontokat a hozzájuk tartozó
+feladatnév alapján csoportosítja, majd elkülöníti az aktív gyakorlatokat a pihenő vagy technikai
+állapotoktól. Erre azért van szükség, mert más típusú számítások értelmezhetők egy statikus
+egyensúlyi feladatnál, mint például egy járáshoz kapcsolódó dinamikus gyakorlatnál.
+
+\subsection{Statikus feladatok}
+
+Ezeknél a feladatoknál az elemzés főként az egyensúlyhoz és terheléseloszláshoz kapcsolódó
+jellemzőket számolja
+\section{Eredmények számítása és megjelenítése}
+
+Az alkalmazás elemzési része a munkamenet során rögzített szenzoradatokból dolgozik. A bemeneti adatok feladatonként címkézett mérési pontokból állnak, amelyek tartalmazzák a talpi nyomáscsatornák értékeit, a háromtengelyű gyorsulási adatokat, az időbélyeget és az adott gyakorlat nevét. Az elemzés célja nem orvosi diagnózis készítése, hanem olyan összesített mutatók előállítása, amelyek segítik a munkamenet későbbi áttekintését és összehasonlítását.
+
+Az elemzés első lépése az adatok szegmentálása. A rendszer a rögzített adatpontokat a hozzájuk tartozó feladatnév alapján csoportosítja, majd elkülöníti az aktív gyakorlatokat a pihenő vagy technikai állapotoktól. Erre azért van szükség, mert más típusú számítások értelmezhetők egy statikus egyensúlyi feladatnál, mint például egy járáshoz kapcsolódó dinamikus gyakorlatnál.
+
+Statikus feladatok esetén az elemzés főként az egyensúlyhoz és a terheléseloszláshoz kapcsolódó jellemzőket számolja. A talp elülső részének terhelése a két elülső nyomáscsatorna összegeként jelenik meg:
+
+\[
+    \text{forefoot} = ch0 + ch1
+\]
+
+A teljes talpi terhelés ehhez képest:
+
+\[
+    \text{totalPressure} = ch0 + ch1 + ch2
+\]
+
+Ebből számítható például a sarokterhelés aránya:
+
+\[
+    \text{heelRatio} = \frac{ch2}{\text{totalPressure}}
+\]
+
+A rendszer ebből átlagos sarokterhelési százalékot, előre-hátra irányú kilengést, oldalirányú terheléseltolódást, valamint ezek varianciájából kombinált kilengési mutatót állít elő. A gyorsulásadatok alapján remegéshez kapcsolódó index is számítható, amely a gyorsulás nagyságának változékonyságát veszi figyelembe.
+
+Dinamikus feladatoknál az elemzés más logikát követ. Ilyenkor a cél a mozgás ismétlődő mintázatainak, például a lépéseknek a felismerése. A lépésdetektálás a függőleges gyorsulási komponens küszöbérték-alapú vizsgálatával történik. Ha az \code{accelZ} értéke meghalad egy megadott küszöböt, és az előző detektált lépés óta eltelt egy minimális mintaszám, akkor a rendszer új lépést számol. Ez a holtidő csökkenti annak esélyét, hogy egyetlen mozgásból több lépés keletkezzen zaj vagy apró ingadozás miatt.
+
+A dinamikus elemzés a lépésszám mellett a sarokhasználat minőségét is becsli. Ez azt mutatja meg, hogy a lépésdetektálások környezetében a teljes talpi terhelés mekkora része jelentkezett a saroknál:
+
+\[
+    \text{heelStrikeQuality} =
+    \frac{\text{heelStrikePressure}}{\text{totalStepPressure}} \cdot 100
+\]
+
+A rendszer továbbá a gyorsulásvektor nagyságából a mozgás intenzitásának változását is figyeli. A gyorsulás nagysága a három komponensből számítható:
+
+\[
+    |a| = \sqrt{accelX^2 + accelY^2 + accelZ^2}
+\]
+
+A munkamenet első és második felének átlagos gyorsulási magnitúdója összehasonlítható, ebből pedig egy amplitúdócsökkenési vagy fáradási jellegű mutató képezhető:
+
+\[
+    \text{amplitudeDropoff} =
+    \frac{\text{avgEnergyFirst} - \text{avgEnergySecond}}
+    {\text{avgEnergyFirst}} \cdot 100
+\]
+
+Ez nem klinikai értelemben vett fáradtságmérés, hanem az adott mérésen belüli mozgásintenzitás-változás egyszerű, összehasonlító jellegű mutatója.
+
+A \code{StabilityCalculator} feladata a mérés közbeni stabilitási pontszám előállítása. Ez a komponens a normalizált gyorsulási értékekből számolja ki a gyorsulásvektor euklideszi nagyságát:
+
+\[
+    \text{magnitude} = \sqrt{x^2 + y^2 + z^2}
+\]
+
+Ezt követően az értéket egy 0 és 100 közötti skálára alakítja:
+
+\[
+    \text{score} = 100 - \text{magnitude} \cdot 50
+\]
+
+A pontszám korlátozva van a 0--100 tartományra, majd egy tizedesjegyre kerekítve jelenik meg. A nagyobb gyorsulási kilengés alacsonyabb stabilitási értéket eredményez, míg a kisebb mozgásingadozás magasabb pontszámmal jár. Ez a mutató a feladat közbeni visszajelzést támogatja, nem pedig önálló diagnosztikai értékelést ad.
+
+Az alkalmazás egy további eseménytípust is számol: a járás közbeni lefagyáshoz hasonló mintázatok számát. A detektálás csúszóablakos vizsgálattal történik, ahol az algoritmus a gyorsulási adatok varianciáját és a talpi nyomásváltozás mértékét figyeli. Ha egy ablakban magas a vízszintes gyorsulási variancia, de közben alacsony a nyomásváltozás, akkor az alkalmazás ezt potenciális lefagyási eseményként számolja. Ezt is óvatosan kell értelmezni: a rendszer nem állapít meg klinikai \textit{Freezing of Gait} eseményt, hanem egy előre definiált mintázat előfordulását jelzi.
+
+Az eredmények megjelenítése az eredményképernyőn történik. A felület először összegző kártyákon mutatja a főbb mutatókat, például a fáradási indexet és a potenciális lefagyási események számát. Ezt vizuális elemek egészítik ki: a talpi nyomáseloszlás hőtérképen jelenik meg, az egyensúlyhoz kapcsolódó súlypontvándorlás pontdiagramon látható, a járásritmus pedig vonaldiagramként kerül kirajzolásra. A részletes eredmények feladatonként jelennek meg, így a statikus és dinamikus gyakorlatokhoz eltérő mutatók társíthatók.
+
+A megjelenítés célja, hogy a rögzített mérési adatokból átlátható, összehasonlítható és könnyebben értelmezhető visszajelzés készüljön. Az alkalmazás tehát nem a beteg állapotának orvosi minősítését végzi, hanem a munkamenethez kapcsolódó szenzoradatokat rendezi, összegzi és vizuálisan megjeleníti.

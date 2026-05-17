@@ -3,7 +3,7 @@ package org.example.project
 object SensoriaDecoder {
 
     fun decodePacket(byteArray: ByteArray): SensoriaData? {
-        if (byteArray.size < 20) return null
+        if (byteArray.size < 16) return null
 
         return try {
             val reader = BitReader(byteArray)

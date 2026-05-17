@@ -1,0 +1,93 @@
+\section{Felhasználói felület}
+
+A felhasználói felület nem egyetlen összetett nézetben tartalmazza az alkalmazás összes funkcióját,
+hanem a munkamenet fő lépéseihez igazodva külön képernyőkre bontja azokat.
+Ez a felépítés segíti az áttekinthetőséget, mivel a felhasználó minden lépésben csak az adott
+művelethez szükséges információkkal és vezérlőelemekkel találkozik.
+A képernyők Compose-alapú komponensekből épülnek fel, így a megjelenített tartalom az
+alkalmazás aktuális állapotához igazodik.
+
+
+
+\subsection{Konfigurációs képernyő}
+
+A konfigurációs képernyő a munkamenet előkészítésére szolgál. Itt hozható létre a
+Bluetooth-kapcsolat a Sensoria okoszoknival, amelynek állapotáról az alkalmazás visszajelzést
+ad a felhasználónak. A sikeres csatlakozás után a felhasználó megadhatja a nevét,
+amely a későbbiekben a mérés azonosítására szolgál.
+
+
+A rehabilitációs mozgássorozat kétféleképpen állítható össze:
+\begin{itemize}
+    \item Egy előre meghatározott gyakorlatsor használata, amely egy specifikusan
+    összeállított rehabilitációs feladatsort tartalmaz. Ebben az esetben a gyakorlatok sorrendje
+    adott, a hozzájuk tartozó időtartamok azonban módosíthatók.
+    \item Egyéni feladatsor összeállítása. Ez akkor hasznos, ha az előre definiált gyakorlatsor
+    nem illeszkedik a felhasználó aktuális rehabilitációs szakaszához vagy állapotához.
+    Ilyenkor a felhasználó egy legördülő listából választhatja ki a kívánt gyakorlatokat,
+    megadhatja azok időtartamát, majd tetszőleges sorrendben hozzáadhatja őket a munkamenethez.
+\end{itemize}
+
+
+A konfigurációs képernyőről indítható el a mérés, valamint innen érhetők el a
+korábban mentett munkamenetek is. A képernyő így a mérési folyamat kiindulópontjaként működik.
+
+
+\subsection{Végrehajtási képernyő}
+
+A végrehajtási képernyő a konfigurációs képernyőről indított mérés után jelenik meg.
+A munkamenet elején a felhasználó kiválaszthatja, milyen megjelenítési módot szeretne használni
+a gyakorlatok végrehajtása közben. Lehetőség van csak a feladatot bemutató videó megjelenítésére,
+csak az előlapi kamera képének megjelenítésére, illetve a kettő egyidejű,
+egymás melletti megjelenítésére.
+
+
+Minden gyakorlat előtt egy rövid, öt másodperces előkészítő szakasz jelenik meg.
+Ebben az időszakban a felhasználó a gyakorlatot bemutató videót látja,
+így még a mérés kezdete előtt megfigyelheti a helyes végrehajtást.
+A tényleges adatgyűjtés és a gyakorlat végrehajtása csak ezt követően indul el.
+
+
+A mérés a munkamenet közben bármikor megszakítható. Ebben az esetben az alkalmazás nem menti el
+a munkamenetet, így nem keletkezik hiányos vagy félbeszakított adatokon alapuló elemzés.
+Ez fontos szempont az eredmények értelmezhetősége és a tárolt adatok következetessége miatt.
+
+
+A gyakorlatok végrehajtása közben a felület a kiválasztott megjelenítési módnak megfelelő
+videós tartalmat jeleníti meg. A videó alatt a nem valós idejű szöveges instrukciók szerepelnek,
+illetve a stabilitási adatok jelennek meg, amelyek az aktuális végrehajtásról adnak közvetlen
+visszajelzést a felhasználónak.
+
+
+\subsection{Eredményképernyő}
+
+A mérés lezárása után az alkalmazás automatikusan az eredményképernyőre navigál.
+Ez a felület a munkamenethez tartozó összesített információkat jeleníti meg strukturált formában.
+A cél az, hogy a rögzített adatok ne nyers szenzorértékekként jelenjenek meg, hanem olyan
+áttekinthető formában, amely segíti a mérés értelmezését.
+
+
+Az eredményképernyőn megjelennek a munkamenet azonosításához szükséges alapadatok,
+például a felhasználó neve és a mérés időpontja.
+Emellett láthatók a végrehajtott gyakorlatokhoz kapcsolódó eredmények,
+valamint a szenzoradatokból számított mutatók. Ezek az információk a munkamenet későbbi
+áttekintését és összehasonlítását támogatják.
+
+\subsection{Mentett munkamenet képernyő}
+
+A mentett munkamenetek képernyője a korábban rögzített mérések elérésére szolgál.
+A felület listában jeleníti meg az elmentett munkameneteket, amelyek közül a felhasználó
+kiválaszthatja a megtekinteni kívánt elemet. A kiválasztott munkamenet betöltése után az
+alkalmazás megjeleníti az ahhoz tartozó eredményképernyőt.
+
+
+A listázás során  az egyes mérések egyértelműen azonosíthatók a felhasználó neve és a
+méréshez tartozó időbélyeg segítségével.
+Így több eltárolt munkamenet esetén is visszakereshető, hogy melyik mérés kihez és mikorhoz
+kapcsolódik.
+
+
+A nem kívánt vagy már nem szükséges munkamenetek manuálisan törölhetők a telefon tárhelyéről.
+Ez lehetőséget ad arra, hogy a felhasználó vagy a fejlesztő szükség esetén eltávolítsa a már nem
+releváns mérési adatokat.
+

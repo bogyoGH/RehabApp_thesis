@@ -182,7 +182,7 @@ class SessionViewModel {
     private fun finishSession() {
         isRunning = false
         currentTaskName = "All Tasks Completed!" //
-        calculateFullAnalysis()
+        calculateFullAnalysis(sessionData)
         saveSessionToJson() // Először kimentjük az adatokat
 
         // 1. Kiszámoljuk az összes eredményt és feltöltjük a sessionResult változót
@@ -192,8 +192,8 @@ class SessionViewModel {
         sessionCompleted = true
     }
 
-    private fun calculateFullAnalysis() {
-        val segmented = SessionAnalyzer.segmentDataByTask(sessionData)
+    private fun calculateFullAnalysis(dataToAnalyze: List<SensoriaData>) {
+        val segmented = SessionAnalyzer.segmentDataByTask(dataToAnalyze)
         val (activeTasks, restTasks) = SessionAnalyzer.separateTasks(segmented)
 
         val resultsMap = mutableMapOf<String, Any>()
@@ -233,6 +233,53 @@ class SessionViewModel {
         )
 
         println("Elemzés kész! Képernyőváltás indítása...")
+    }
+
+    fun loadAndShowSavedSession(fileName: String) {
+        viewModelScope.launch(Dispatchers.Default) {
+            // 1. Fájl beolvasása szövegként
+            val jsonString = FileStorage.readText(fileName) ?: return@launch
+
+            try {
+                // 2. JSON string deszerializálása SessionExport objektummá
+                val sessionExport = Json { ignoreUnknownKeys = true }.decodeFromString<SessionExport>(jsonString)
+
+                // 3. ExportedSensorData listát visszaalakítjuk SensoriaData listává
+                val restoredSensoriaData = sessionExport.sensorData.map { exported ->
+                    val x = exported.accelNormalized["x"] ?: 0.0
+                    val y = exported.accelNormalized["y"] ?: 0.0
+                    val z = exported.accelNormalized["z"] ?: 0.0
+
+                    // Inverz matematika: (accelX - 512) / 512.0 * 2.0 képlet alapján visszafelé:
+                    val rawX = ((x / 2.0) * 512.0 + 512).toInt().coerceIn(0, 1023)
+                    val rawY = ((y / 2.0) * 512.0 + 512).toInt().coerceIn(0, 1023)
+                    val rawZ = ((z / 2.0) * 512.0 + 512).toInt().coerceIn(0, 1023)
+
+                    SensoriaData(
+                        ch0 = exported.pressure["ch0"] ?: 0,
+                        ch1 = exported.pressure["ch1"] ?: 0,
+                        ch2 = exported.pressure["ch2"] ?: 0,
+                        accelX = rawX,
+                        accelY = rawY,
+                        accelZ = rawZ,
+                        taskName = exported.task
+                    )
+                }
+
+                // 4. Elemzés lefuttatása a helyreállított adatokon
+                calculateFullAnalysis(restoredSensoriaData)
+
+                // 5. UI állapotok frissítése a fő szálon a képernyőváltáshoz
+                withContext(Dispatchers.Main) {
+                    patientId = sessionExport.sessionInfo.patientId
+                    currentTaskName = "Betöltött munkamenet"
+                    sessionCompleted = true // Ez fogja átnavigálni a felhasználót a ResultsScreen-re!
+                }
+
+            } catch (e: Exception) {
+                println("Hiba a mentett session betöltése közben: ${e.message}")
+            }
+        }
     }
 
     private fun saveSessionToJson() {
