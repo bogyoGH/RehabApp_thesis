@@ -19,7 +19,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 
-
+enum class ViewPreference{
+    SELF,VIDEO, BOTH
+}
 class SessionViewModel {
     // UI Állapotok
     var currentTaskName by mutableStateOf("Ready to start")
@@ -58,6 +60,10 @@ class SessionViewModel {
 
     var isPreviewPhase by mutableStateOf(false)
 
+    var viewPreference by mutableStateOf(ViewPreference.BOTH)
+
+    var showViewModeDialog by mutableStateOf(false)
+
     val standardRehabRoutine = mutableStateListOf(
         ScheduledTask.Preset(RehabTaskType.TANDEM_WALKING, duration = 30),
         ScheduledTask.Preset(RehabTaskType.REST, duration = 60),
@@ -70,13 +76,24 @@ class SessionViewModel {
         if (isRunning) return // Megakadályozzuk a többszörös indítást
         currentSessionMode = mode
         sessionCompleted = false
-        scheduledTasksForExport = tasks
-        isRunning = true
         sessionData.clear()
+
+        // 1. Mentsük el a feladatokat most, hogy a dialog bezárása után tudjuk, mit kell elindítani!
+        scheduledTasksForExport = tasks
+
+        // 2. Jelenítsük meg a választó ablakot
+        showViewModeDialog = true
+    }
+
+    fun confirmViewModeAndStart(preference: ViewPreference) {
+        viewPreference = preference
+        showViewModeDialog = false
+        isRunning = true
 
         sessionJob = viewModelScope.launch {
             try {
-                tasks.forEach { task ->
+                // Az elmentett listán iterálunk végig
+                scheduledTasksForExport.forEach { task ->
                     runTask(task)
                 }
                 finishSession()
@@ -222,7 +239,7 @@ class SessionViewModel {
         val now = Clock.System.now()
         val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds())
             .toLocalDateTime(TimeZone.currentSystemDefault())
-        val sessionId = "session_${localDateTime.date.toString().replace("-", "")}_" +
+        val sessionId = "session_${patientId}- ${localDateTime.date.toString().replace("-", "")}_" +
                 "${localDateTime.hour}${localDateTime.minute}${localDateTime.second}"
 
         val export = SessionExport(

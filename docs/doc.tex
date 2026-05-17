@@ -1,0 +1,73 @@
+% !TeX options = -shell-escape
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[english,magyar]{babel}
+\usepackage{amsmath}
+\usepackage[pdftex,unicode,raiselinks,colorlinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{setspace}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{csquotes}
+\usepackage{biblatex}
+\usepackage{graphicx}
+\usepackage{minted}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta}
+
+\onehalfspacing
+
+\hyphenation{pre-sence vi-su-alized si-mu-la-tions mo-le-cu-lar se-ve-ral cha-rac-te-ris-tic CoNSEnsX}
+
+\begin{document}
+
+    \hypersetup{pageanchor=false}
+    \begin{titlepage}
+        \centering
+
+        {\Huge\bfseries
+        Parkinson-kóros betegek rehabilitációját támogató mobilalkalmazás fejlesztése
+        \par}
+
+        \vspace{1.2cm}
+
+        {\Large Önálló laboratórium dokumentáció\par}
+
+        \vspace{2cm}
+
+        \includegraphics[width=0.42\textwidth]{itk_logo_eng.png}
+
+        \vspace{2cm}
+
+        \begin{minipage}{0.65\textwidth}
+            \large
+            \begin{tabular}{ll}
+                Készítette: & Győrfi Bernadett (DNKZ89)\\
+                Témavezető: & Grand László \\
+                Szak: & Molekuláris Bionika Mérnök\\
+                Tantárgy: & Önálló laboratórium \\
+            \end{tabular}
+        \end{minipage}
+
+        \vfill
+
+        {\large
+        Pázmány Péter Catholic University\\
+        Faculty of Information Technology and Bionics\\
+        Budapest, Hungary\\
+        2026
+        \par}
+
+    \end{titlepage}
+
+    \hypersetup{pageanchor=true}
+    \tableofcontents
+
+    \newpage
+    \input{chapters/01.Feladat}
+    \input{chapters/02.Bevezetes.tex}
+\end{document}

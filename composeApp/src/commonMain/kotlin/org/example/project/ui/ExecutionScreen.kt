@@ -17,11 +17,48 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import org.example.project.SessionViewModel
+import org.example.project.ViewPreference
 
 @Composable
 fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
     val scrollState = rememberScrollState()
 
+    if (viewModel.showViewModeDialog) {
+        AlertDialog(
+            onDismissRequest = { /* Ne lehessen bezárni döntés nélkül */ },
+            title = { Text("Nézeti beállítások") },
+            text = { Text("Mit szeretne látni a feladat végzése közben?") },
+            confirmButton = {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(
+                        onClick = {
+                            viewModel.confirmViewModeAndStart(ViewPreference.SELF)
+                            viewModel.showViewModeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    ) { Text("Csak önmagamat") }
+
+                    Button(
+                        onClick = {
+                            viewModel.confirmViewModeAndStart(ViewPreference.VIDEO)
+                            viewModel.showViewModeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    ) { Text("Csak a feladatot") }
+
+                    Button(
+                        onClick = {
+                            viewModel.confirmViewModeAndStart(ViewPreference.BOTH)
+                            viewModel.showViewModeDialog = false
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                    ) { Text("Mindkettőt") }
+                }
+            }
+        )
+    }
+
+    // FŐ KONTÉNER (Minden ez alatt van, és együtt scrollozható)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -38,63 +75,59 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
         )
 
         // --- 2. BLOKK: EGYYMÁS MELLETTI VIDEÓK (50-50%) ---
+        // Visszatettem a Row-t, hogy egymás MELLETT legyenek és ne fagyjon ki a Compose a weight miatt!
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(600.dp)
+                .height(400.dp) // Fix magasság kell a Row-nak, ezt állítsd be ízlés szerint (pl. 500.dp)
         ) {
-            // BAL OLDAL: FELADAT VIDEÓ
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(Color.Black)
-                    .clipToBounds()
-            ) {
-                // A key ide kerül, a viewModel.currentTaskName-t vagy currentVideoName-t figyeli
-                key(viewModel.currentVideoName) {
-                    viewModel.currentVideoName?.let { videoName ->
-                        VideoPlayer(
-                            videoName = videoName,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No video", color = Color.DarkGray)
-                    }
-                }
-                if (viewModel.isPreviewPhase) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f)), // Enyhe sötétítés
-                        contentAlignment = Alignment.TopCenter
-                    ) {
-                        Text(
-                            text = "FIGYELJE A BEMUTATÓT!",
-                            color = Color(0xFFFFB74D),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp,
-                            modifier = Modifier.padding(top = 16.dp)
-                        )
-                    }
-                }
-            }
+            val pref = viewModel.viewPreference
+            val isPreview = viewModel.isPreviewPhase
 
-            // JOBB OLDAL: SAJÁT KAMERA (CSAK AKKOR JELENIK MEG, HA A FELKÉSZÜLÉS VÉGET ÉRT!)
-            if (!viewModel.isPreviewPhase) {
+            // LOGIKA A BAL OLDALHOZ (VIDEÓ)
+            if (pref == ViewPreference.BOTH || pref == ViewPreference.VIDEO || (pref == ViewPreference.SELF && isPreview)) {
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .weight(if (pref == ViewPreference.BOTH && !isPreview) 1f else 2f)
                         .fillMaxHeight()
                         .background(Color.Black)
                         .clipToBounds()
                 ) {
-                    CameraPreview(
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    key(viewModel.currentVideoName) {
+                        viewModel.currentVideoName?.let { videoName ->
+                            VideoPlayer(videoName = videoName, modifier = Modifier.fillMaxSize())
+                        }
+                    }
+                    if (isPreview) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)),
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            Text(
+                                text = "FIGYELJE A BEMUTATÓT!",
+                                color = Color(0xFFFFB74D),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 24.sp,
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                        }
+                    }
                 }
             }
-        } // A Row itt ér véget!
+
+            // LOGIKA A JOBB OLDALHOZ (KAMERA)
+            if (!isPreview && (pref == ViewPreference.BOTH || pref == ViewPreference.SELF)) {
+                Box(
+                    modifier = Modifier
+                        .weight(if (pref == ViewPreference.BOTH) 1f else 2f)
+                        .fillMaxHeight()
+                        .background(Color.Black)
+                        .clipToBounds()
+                ) {
+                    CameraPreview(modifier = Modifier.fillMaxSize())
+                }
+            }
+        } // <-- ROW VÉGE
 
         // --- 3. BLOKK: INSTRUKCIÓK, IDŐZÍTŐ ÉS GOMBOK ---
         Column(
@@ -125,12 +158,11 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = viewModel.timerText,
-                    fontSize = if (viewModel.isPreviewPhase) 48.sp else 80.sp, // Felkészüléskor kisebb a betű
+                    fontSize = if (viewModel.isPreviewPhase) 48.sp else 80.sp,
                     fontWeight = FontWeight.Black,
-                    color = if (viewModel.isPreviewPhase) Color(0xFFFFB74D) else Color.White // Felkészüléskor narancssárga
+                    color = if (viewModel.isPreviewPhase) Color(0xFFFFB74D) else Color.White
                 )
 
-                // Stabilitást és Progress bart csak akkor mutatunk, ha már aktív a feladat
                 if (!viewModel.isPreviewPhase) {
                     Text(
                         text = viewModel.stabilityScore,
@@ -145,7 +177,6 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                         trackColor = Color.DarkGray
                     )
                 } else {
-                    // Üres helyfoglaló, hogy ne ugráljon a UI
                     Spacer(modifier = Modifier.height(36.dp))
                 }
             }
@@ -158,7 +189,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             ) {
                 Text("STOP SESSION", fontWeight = FontWeight.Bold)
             }
-        }
+        } // 3. Blokk vége
 
         LaunchedEffect(viewModel.sessionCompleted) {
             if (viewModel.sessionCompleted) {
@@ -166,5 +197,5 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 onStop()
             }
         }
-    }
+    } // <-- FŐ COLUMN VÉGE (Ide került a zárójel)
 }

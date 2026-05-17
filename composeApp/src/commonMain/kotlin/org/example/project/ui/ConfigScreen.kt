@@ -85,6 +85,18 @@ fun ConfigScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = patientId,
+            onValueChange = onPatientIdChange,
+            label = { Text("Patient ID") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
         // --- 2. BLOKK: STANDARD REHAB SESSION ---
         Text("Standard Rehab Routine", style = MaterialTheme.typography.titleMedium, color = Color(0xFF4CAF50))
         Card(
@@ -140,14 +152,6 @@ fun ConfigScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = patientId,
-            onValueChange = onPatientIdChange,
-            label = { Text("Patient ID") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Legördülő menüs hozzáadás
         Row(
