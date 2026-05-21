@@ -357,7 +357,7 @@ actual class SensoriaBluetoothManager actual constructor(
 
     private fun decodeSensoriaPacket(byteArray: ByteArray): SensoriaData? {
         // JAVÍTÁS: A 130 bit olvasásához elég 17 byte! Ha ennél is kevesebb, akkor van baj.
-        if (byteArray.size < 16) {
+        if (byteArray.size < 12) {
             println("⚠️ Csomag eldobva: Túl rövid (${byteArray.size} byte)")
             return null
         }
