@@ -1,23 +1,33 @@
 \section{Kamera és videókezelés}
 
-Az alkalmazás szenzoradatok mellett videós tartalom is megjelenik. A videós funkciók a végrehajtási
-képernyőhöz kapcsolódnak. A munkamenet elején a felhasználó kiválaszthatja,
-hogy milyen nézetet szeretne használni: csak a bemutatóvideót, csak az előlapi kamera képét,
-vagy a kettőt egyszerre, egymás mellett. Ez rugalmasabb használatot tesz lehetővé, mert a felhasználó
-eldöntheti, hogy inkább a minta alapján szeretné követni a gyakorlatot,
-vagy a saját mozgását szeretné látni végrehajtás közben.
+ Mivel a multimédiás eszközök elérése és a hardveres videódekódolás splatformfüggő funkciók,
+ a rendszer a Kotlin Multiplatform \texttt{expect/actual} mechanizmusát használja.
+Ennek megfelelően a közös részben csak a Compose komponensek absztrakciói jelennek meg,
+míg a tényleges működés egy dedikált Android-specifikus implementációban kap helyet \cite{kotlinmultiplatform}.
 
-A bemutatóvideó minden feladat előtt rövid előkészítő szakaszban jelenik meg.
-Ez alatt a felhasználó még nem végez mérést, hanem megfigyelheti, hogyan kell a következő
-gyakorlatot végrehajtani. A tényleges adatgyűjtés csak az előkészítő szakasz után indul el,
-így a rögzített szenzoradatok már a gyakorlat végrehajtásához kapcsolódnak. A kamera-előnézet
-célja nem önálló videóelemzés, hanem a mozgás felhasználó általi vizuális követésének támogatása.
+\subsection{Kameraelőnézet}
 
+Az előlapi kamera képének megjelenítését a Jetpack CameraX biztosítja \cite{camerax}.
+A PreviewView hagyományos Android nézet, ezért Compose felületen az AndroidView segítségével
+jeleníthető meg. Ez az elem biztosítja az átjárást a natív Android UI-komponensek és a Compose-alapú
+felület között.
 
-A videók kezelése részben platformfüggő feladat, ezért az alkalmazásban különválik a közös felület
-és az Android-specifikus megvalósítás. A közös kódrészben a videólejátszáshoz tartozó absztrakció
-szerepel, míg az Androidhoz kötődő működés külön implementációban kap helyet.
+A kamera-előnézet megjelenítésénél az \texttt{ImplementationMode.COMPATIBLE} módot állítottam be.
+Ezzel a PreviewView a Compose-felülettel kompatibilesebb megjelenítési módot használ,
+amely lehetővé teszi a kamerakép megfelelő méretezését, maszkolását és elhelyezését.
+Erre főként az osztott képernyős nézet miatt volt szükség, a beállítás nélkül a kamerakép bizonyos esetekben túlnyúlhatott volna a
+számára kijelölt területen.
 
+\subsection{Videólejátszás}
 
+A rehabilitációs gyakorlatokat bemutató videók lejátszásáért a AndroidX Media3 (korábban ExoPlayer)
+komponens felel \cite{exoplayer}. A videófájlok az alkalmazás befordított lokális erőforrásai között
+(a \texttt{res/raw} könyvtárban) kapnak helyet, így hálózati kapcsolat nélkül, azonnal betölthetők.
 
-
+Az \texttt{ExoPlayer} inicializálása során a rendszer a \texttt{REPEAT\_MODE\_ALL} beállítást alkalmazza,
+amely megoldja a végtelenített ismétlését az adatgyűjtés teljes időtartama alatt.
+A multimédiás szoftverfejlesztés egyik legnagyobb kihívása a memóriaszivárgás
+elkerülése \cite{exoplayer}. Ennek megelőzése érdekében a megvalósítás a Compose
+\texttt{DisposableEffect} életciklus-kezelőjét használja, amely garantálja az erőforrások azonnali
+és biztonságos felszabadítását (\texttt{player.release()}), amint a felhasználó megszakítja a
+mérést vagy elhagyja a képernyőt.

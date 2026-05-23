@@ -1,32 +1,37 @@
-\section{Adattárolás és Export}
+\section{Adattárolás és exportálás}
 
-Az alkalmazásban az adattárolás a mérés lezárásához kapcsolódik. A munkamenet közben a rendszer
-folyamatosan gyűjti az aktuális gyakorlathoz tartozó adatokat, de ezek csak akkor kerülnek
-véglegesen mentésre, ha a felhasználó szabályosan befejezi a mérést.
-Amennyiben a munkamenet megszakításra kerül, az alkalmazás nem hoz létre mentett eredményt,
-így elkerülhető, hogy hiányos adatok alapján készüljön későbbi elemzés vagy megjelenítés.
+Az alkalmazásban az adattárolás szigorúan a mérés lezárásához kapcsolódik. A munkamenet közben a
+rendszer a szenzoradatokat a memóriában rakja. Ezek az adatsorok csak abban az esetben kerülnek
+véglegesen mentésre, ha a felhasználó szabályosan végrehajtja és befejezi a mérést. Amennyiben a
+munkamenet megszakításra kerül, az alkalmazás eldobja a memóriatartalmat,
 
+\subsection{DTO tervezési minta és Szerializáció}
 
-A mentés előtt az alkalmazás összeállítja a teljes munkamenetet leíró adatszerkezetet.
-Ebbe bekerül a felhasználó neve, a mérés időpontja, a kiválasztott feladatok listája,
-az egyes feladatokhoz tartozó időtartam, valamint a gyakorlatok alatt rögzített szenzoradatok.
-A cél az volt, hogy egy mentett munkamenet önmagában is értelmezhető legyen, vagyis később ne csak
-a nyers mérési pontok legyenek elérhetők, hanem azok a körülmények is, amelyek között az adatok
-keletkeztek.
+A mentés megkezdése előtt az alkalmazás összeállítja a teljes munkamenetet leíró adatszerkezetet.
+Az alkalmazás belső, futásidejű állapotát
+reprezentáló modellek (például az aktív \texttt{SensoriaData} objektumok) nem egyeznek meg azzal
+a formátummal, amely hosszú távú tárolásra optimalizált.
 
-A munkamenet adatai exportálható formában kerülnek összeállításra. A megvalósítás során ehhez külön
-exportobjektumokat, amelyek a mentéshez szükséges adatokat rendezett struktúrába foglalják.
-Ez azért volt fontos, mert az alkalmazás belső állapota nem minden esetben egyezik meg azzal a
-formával, amely hosszú távú tárolásra vagy külső feldolgozásra alkalmas.
-A mentéshez ezért az aktuális állapotból egy külön exportobjektum készül, amely csak a később
-is szükséges, rekonstruálható adatokat tartalmazza.
+A probléma feloldására a rendszer a Data Transfer Object (DTO) tervezési mintát alkalmaztam.
+Az aktuális állapotból egy külön exportobjektum-hierarchia (\texttt{SessionExport}, \texttt{SessionInfo},
+\texttt{ExportedSensorData}) épül fel. Így mentett munkamenet önmagában is, kontextusával együtt
+(metaadatok, feladatok paraméterei, normalizált gyorsulás) értelmezhető legyen a későbbi feldolgozás során.
 
-A fájlba mentés strukturált szöveges formátumban történik (.json),
-amely alkalmas arra, hogy az adatok később visszaolvashatók vagy más eszközökkel
-feldolgozhatók legyenek. A mentett fájl a telefon tárhelyén jön létre, és a munkamenet
-azonosításához szükséges információk alapján később listázható. A fájlnevek és a tárolt metaadatok
-célja, hogy több mérés esetén is egyértelműen megkülönböztethetők legyenek az egyes munkamenetek.
+A memóriában lévő objektumok fájlba írását a \texttt{kotlinx.serialization} keretrendszer végzi,
+amely platformfüggetlen módon alakítja át a Kotlin adatosztályokat olvasásra
+alkalmas  JSON (JavaScript Object Notation) szöveges formátummá \cite{kotlinserialization}.
 
+\subsection{Biztonságos fájlkezelés}
 
+A generált JSON fájl tárolása az Android operációs rendszer belső, izolált tárhelyén
+(\texttt{Context.filesDir}) történik \cite{androidstorage}. Az itt tárolt fájlokhoz más alkalmazások
+vagy külső felhasználók nem férhetnek hozzá, és az alkalmazás eltávolításakor a rendszer
+automatikusan megsemmisíti őket, megelőzve az érzékeny adatok (pl. páciens azonosítók, egészségügyi mutatók)
+kiszivárgását.
 
+A fájlnevek generálása egy szigorú mintát követ,
+amely tartalmazza a felhasználó nevét(Patient ID) és a mérés pontos időbélyegét
+(pl. \texttt{session\_PT-001\_20260523\_...json}). Ez az elnevezés biztosítja a mérések
+egyértelmű azonosíthatóságát és a mentett adatok listázását a
+felhasználói felületen.
 

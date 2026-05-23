@@ -1,0 +1,49 @@
+\section{Tesztelés és validáció}
+
+Az alkalmazás tesztelése elsősorban funkcionális szempontból történt.
+A tesztelési fázis célja annak ellenőrzése volt, hogy a felhasználói folyamatok
+hibamentesen végigvihetők-e, valamint hogy a méréshez kapcsolódó adatok a várt
+formátumban menthetők és tölthetők vissza.
+
+\subsection{Fizikai és emulált tesztkörnyezet}
+
+A tesztelés két fő környezetben zajlott. A fejlesztési fázis nagy részében az
+Android Virtual Device (AVD) emulátorok használata tette lehetővé a gyors iterációt
+\cite{androidemulator}. Ennek segítségével a felhasználói felület (UI) vizuális elemei,
+a képernyőméretekhez való alkalmazkodás és a fájlkezelési funkciók anélkül
+voltak tesztelhetők, hogy minden alkalommal fizikai teszteszközt kellett
+volna csatlakoztatni.
+
+A tesztelés megtörtén fizikai eszközön is. Erre azért volt szükség, hogy a
+Bluetooth Low Energy (BLE) kapcsolat stabilitása, az operációs rendszer szintű
+jogosultságkérések, a hardveres kameraelőnézet, valamint a valós idejű,
+aszinkron szenzoradatok fogadása valós körülmények között is igazolható legyen.
+
+\subsection{Adatgenerálás (Mocking)}
+
+Mivel a zokni nem volt elérhető a tesztelés minden fázisában, ezért az alkalmazás egy
+beépítettem egy tesztadat-generátort (\texttt{MockDataGenerator}) , amely képes a
+fizikai szenzor adatáramlását szimulálni \cite{syntheticdata}.
+
+A generátor nem csupán statikus értékeket állít elő, hanem a kiválasztott rehabilitációs
+feladat (pl. helyben járás, tandem állás) típusához igazodó, matematikailag modellezett
+jelsorozatokat generál:
+\begin{itemize}
+\item Dinamikus mozgás szimulálása:  Helyben járás esetén az algoritmus egy
+belső időzítő alapján végigmegy a lépésciklus fázisain.
+Különálló gyorsulás- és nyomásértékeket rendel a sarok földetéréséhez,
+a talp gördüléséhez, az elrugaszkodáshoz és a lengési fázishoz.
+\item Súlypontvándorlás: Statikus feladatoknál a generátor trigonometrikus függvények
+(\texttt{sin}) segítségével szimulálja a test folyamatos, hullámszerű előre-hátra dőlését.
+\item Zaj és patológiás tünetek: A valósághűség érdekében a rendszer random zajt generál
+az adatokba a szenzorok 10-bites hardveres limitjein belül. Emellett dedikált logikát
+tartalmaz a Parkinson-kórra jellemző mikro-remegések és ritka, véletlenszerű lefagyásos
+(Freezing of Gait) epizódok szimulálására is.
+\end{itemize}
+
+A generált adatok használata lehetővé tette, hogy az adatgyűjtés folyamata, az UI
+diagramok frissülése és az elemzési logika (pl. lépésdetektálás, varianciaszámítás)
+folyamatosan tesztelhető maradjon. Mivel a szintetikus szenzoradatok felépítése
+meghatározott, az adatfeldolgozó algoritmusok pontossága és helyessége a tesztelés
+során ellenőrizhető volt.
+

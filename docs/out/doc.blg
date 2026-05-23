@@ -1,4 +1,17 @@
 [0] Config.pm:307> INFO - This is Biber 2.19
 [0] Config.pm:310> INFO - Logfile is 'doc.blg'
-[43] biber:340> INFO - === Sun May 17, 2026, 11:18:24
-[52] Biber.pm:419> INFO - Reading 'doc.bcf'
+[45] biber:340> INFO - === Sat May 23, 2026, 21:39:39
+[54] Biber.pm:419> INFO - Reading 'doc.bcf'
+[88] Biber.pm:979> INFO - Found 23 citekeys in bib section 0
+[95] Biber.pm:4419> INFO - Processing section 0
+[101] Biber.pm:4610> INFO - Looking for bibtex file 'hivatkozasok.bib' for section 0
+[102] bibtex.pm:1713> INFO - LaTeX decoding ...
+[110] bibtex.pm:1519> INFO - Found BibTeX data source '/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/hivatkozasok.bib'
+[211] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[211] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[211] Biber.pm:4239> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[211] Biber.pm:4245> INFO - No sort tailoring available for locale 'en-US'
+[224] bbl.pm:660> INFO - Writing 'doc.bbl' with encoding 'UTF-8'
+[227] bbl.pm:763> INFO - Output to doc.bbl
+[227] Biber.pm:131> WARN - BibTeX subsystem: /tmp/biber_tmp_0SG7/eaaf0593c0c7ecedf9c02ae8ef193713_37461.utf8, line 108, warning: 4 characters of junk seen at toplevel
+[227] Biber.pm:133> INFO - WARNINGS: 1

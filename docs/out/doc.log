@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.5.9)  17 MAY 2026 20:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.5.9)  23 MAY 2026 21:39
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -1142,24 +1142,24 @@ runsystem(rm doc.aex)...executed.
  (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.aux)
 \openout1 = `doc.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 27.
-LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 29.
+LaTeX Font Info:    ... okay on input line 29.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1195,7 +1195,7 @@ LaTeX Font Info:    ... okay on input line 27.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring ON on input line 27.
+Package hyperref Info: Link coloring ON on input line 29.
 (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.out)
 (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.out)
 \@outlinefile=\write7
@@ -1219,8 +1219,8 @@ Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'doc.bbl' found.
 
 (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.bbl)
-Package biblatex Info: Reference section=0 on input line 27.
-Package biblatex Info: Reference segment=0 on input line 27.
+Package biblatex Info: Reference section=0 on input line 29.
+Package biblatex Info: Reference segment=0 on input line 29.
 
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -1244,552 +1244,176 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Option `pageanchor' set `false' on input line 29.
-<itk_logo_eng.png, id=87, 596.9502pt x 563.706pt>
+Package hyperref Info: Option `pageanchor' set `false' on input line 31.
+<itk_logo_eng.png, id=199, 596.9502pt x 563.706pt>
 File: itk_logo_eng.png Graphic file (type png)
 <use itk_logo_eng.png>
-Package pdftex.def Info: itk_logo_eng.png  used on input line 43.
+Package pdftex.def Info: itk_logo_eng.png  used on input line 45.
 (pdftex.def)             Requested size: 198.25224pt x 187.21056pt.
 
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./itk_logo_eng.png>]
-Package hyperref Info: Option `pageanchor' set `true' on input line 68.
+Package hyperref Info: Option `pageanchor' set `true' on input line 70.
 
-(/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.toc)
+(/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.toc [1])
 \tf@toc=\write8
 \openout8 = `doc.toc'.
 
- [1]
-(./chapters/01.Feladat.tex) (./chapters/02.Bevezetes.tex
-Overfull \hbox (0.79683pt too wide) in paragraph at lines 18--23
+
+[2] (./chapters/01.Feladat.tex) (./chapters/02.Bevezetes.tex
+Overfull \hbox (0.79683pt too wide) in paragraph at lines 16--22
 []\T1/cmr/m/n/10.95 A ter·pi·s al-ka-lmakon kÌv¸l vÈgzett gyako-r-la-tok es-etÈ
 ben ki-hÌv·st je-len-thet a vÈ-gre-ha-jt·s kˆvetÈse
  []
 
-[2]) (./chapters/03.Munkafolyamat.tex) (./chapters/03.1Attekintes.tex [3])
-(./chapters/03.2.Alkalmazasarchitektura.tex
-./chapters/03.2.Alkalmazasarchitektura.tex:11: Undefined control sequence.
-l.11 ...k√∂zvetlen√ºl interakci√≥ba l√©p. Az \code
-                                                  {App.kt} felel az alkalmaz√°s
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:12: Undefined control sequence.
-l.12 ...©peny≈ëk k√∂zti navig√°ci√≥√©rt. . A \code
-                                                  {ConfigScreen.kt} a m√©r√©s
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:14: Undefined control sequence.
-l.14 Az \code
-             {ExecutionScreen.kt} a munkamenet k√∂zbeni fel√ºletet val√≥s√≠t...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:15: Undefined control sequence.
-l.15 ...s gyakorlat k√∂vet√©se t√∂rt√©nik. A \code
-                                                  {ResultsScreen.kt} az elk√...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:16: Undefined control sequence.
-l.16 eredm√©nyeit jelen√≠ti meg, m√≠g a \code
-                                             {SavedSessionScreen.kt} a kor√°...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:22: Undefined control sequence.
-l.22 ...°tt√©rlogika k√∂z√∂tti kapcsolatot a \code
-                                                  {SessionViewModel.kt}
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-[4]
-./chapters/03.2.Alkalmazasarchitektura.tex:33: Undefined control sequence.
-l.33 ... objektumokkal van reprezent√°lva. A \code
-                                                  {SessionInfo.kt} a
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:35: Undefined control sequence.
-l.35 sz√ºks√©ges adatokat. Az \code
-                                   {ExportedTasks.kt} az adott feladatait √≠...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:36: Undefined control sequence.
-l.36 neve √©s v√©grehajt√°si ideje. Az \code
-                                            {ExportedSensorData} az adott ny...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:37: Undefined control sequence.
-l.37 ...nt √©s id≈ël√©p√©senk√©nt. Illetve a \code
-                                                  {SessionExport} rakja ezek...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:39: Undefined control sequence.
-l.39 \code
-          {SensoriaData} pedig a zoknib√≥l sz√°rmaz√≥ feldolgozott m√©r√©si ...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:40: Undefined control sequence.
-l.40 A \code
-            {FullSessionResults.kt} √©s az \code{AnalysisModel.kt} az elemz√...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:40: Undefined control sequence.
-l.40 A \code{FullSessionResults.kt} √©s az \code
-                                                {AnalysisModel.kt} az elemz√...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:44: Undefined control sequence.
-l.44 ...k√∂zben ezt a logik√°t tartalmazza a \code
-                                                  {SensoriaData.kt}, a val√≥...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-
-Overfull \hbox (21.41605pt too wide) in paragraph at lines 33--48
-\T1/cmr/m/n/10.95 Az al-ka-lmaz·s adat-sz-erkezete k¸lˆn ob-jek-tumokkal van re
-prezen-t·lva. A Ses-sion-Info.kt a munkamenethez
+[3]) (./chapters/03.Munkafolyamat.tex) (./chapters/03.1Attekintes.tex
+Overfull \hbox (0.48888pt too wide) in paragraph at lines 15--19
+\T1/cmr/m/n/10.95 om·nyos, im-per-atÌv (XML-alap˙) An-droi-dos nÈzetekkel szem-
+ben a Com-pose deklaratÌv megkˆzelÌtÈst
  []
 
-./chapters/03.2.Alkalmazasarchitektura.tex:51: Undefined control sequence.
-l.51 ...t√©s, bet√∂lt√©s √©s export√°l√°s. A \code
-                                                  {FileStorage.kt} felel≈ës ...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+[4]) (./chapters/03.2.Alkalmazasarchitektura.tex
+LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 1
+2.
 
-./chapters/03.2.Alkalmazasarchitektura.tex:52: Undefined control sequence.
-l.52 ...°s√°√©rt √©s √≠r√°s√°√©rt, amelyet a \code
-                                                  {SessionViewModel.kt} ir√°...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+(/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
+File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
+)
+Overfull \hbox (4.14359pt too wide) in paragraph at lines 11--20
+\T1/cmr/m/n/10.95 Ès a kÈpernyÆk kˆzˆtti nav-ig·-ciÛÈrt. A \T1/cmtt/m/n/10.95 C
+onfigScreen.kt \T1/cmr/m/n/10.95 a mÈrÈs elÆkÈszÌtÈsÈhez kapc-solÛdÛ nÈzeteket
+ []
 
-./chapters/03.2.Alkalmazasarchitektura.tex:57: Undefined control sequence.
-l.57 val√≥s√≠tja meg. A \code
-                             {SensoriaBluetoothManager.kt} kezeli a Bluetoot...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
 
-./chapters/03.2.Alkalmazasarchitektura.tex:60: Undefined control sequence.
-l.60 ...van dek√≥dol√°sra. Ezt a feladatot a \code
-                                                  {SensoriaDecoder.kt} v√©gz...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:61: Undefined control sequence.
-l.61 ...m√©r√©si √©rt√©keket √°ll√≠t el≈ë. A \code
-                                                  {BitReader.kt} az alacsony...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:66: Undefined control sequence.
-l.66 ...k szint√©n k√ºl√∂n vannak kezelve. A \code
-                                                  {CameraPreview.kt} a m√©r√...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/03.2.Alkalmazasarchitektura.tex:68: Undefined control sequence.
-l.68 feladat v√©gz√©se k√∂zben. A \code
-                                       {VideoPlayer.kt} a gyakorlatok vide√≥...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+Overfull \hbox (2.4836pt too wide) in paragraph at lines 11--20
+\T1/cmr/m/n/10.95 tar-tal-mazza, pÈld·ul a re-ha-bil-it·-ciÛs fe-lada-tok kiv·l
+aszt·s·t. Az \T1/cmtt/m/n/10.95 ExecutionScreen.kt \T1/cmr/m/n/10.95 a munkamen
+et
+ []
 
 [5]
-./chapters/03.2.Alkalmazasarchitektura.tex:74: Undefined control sequence.
-l.74 A \code
-            {SessionAnalyzer.kt} a munkamenet eg√©sz√©nek ki√©rt√©kel√©s√©t ...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+Overfull \hbox (34.87833pt too wide) in paragraph at lines 33--49
+\T1/cmr/m/n/10.95 Az al-ka-lmaz·s adat-sz-erkezete k¸lˆn ob-jek-tumokkal van re
+prezen-t·lva. A \T1/cmtt/m/n/10.95 SessionInfo.kt \T1/cmr/m/n/10.95 a munkamene
+thez
+ []
 
-./chapters/03.2.Alkalmazasarchitektura.tex:76: Undefined control sequence.
-l.76 A \code
-            {StabilityCalculator.kt} speci√°lisabb sz√°m√≠t√°sokat tartalmaz...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
 
-) (./chapters/04.Felhasznaloi felulet.tex [6]
-Overfull \hbox (0.70734pt too wide) in paragraph at lines 70--75
+Overfull \hbox (51.29572pt too wide) in paragraph at lines 33--49
+\T1/cmr/m/n/10.95 kapc-solÛdÛ, a mÈrÈs azonosÌt·s·hoz Ès vis-sza-k-eresÈsÈhez s
+z¸k-sÈges ada-tokat tar-tal-mazza. Az \T1/cmtt/m/n/10.95 ExportedTasks.kt
+ []
+
+[6]
+Overfull \hbox (18.27876pt too wide) in paragraph at lines 77--84
+\T1/cmr/m/n/10.95 Az el-emzÈsi rÈteg a rˆgzÌtett ada-tok-bÛl sz·mÌ-tott ered-mÈ
+nyek elÆ·l-lÌt·s·Èrt felel. A \T1/cmtt/m/n/10.95 SessionAnalyzer.kt
+ []
+
+) (./chapters/04.Felhasznaloi felulet.tex [7]
+Overfull \hbox (0.70734pt too wide) in paragraph at lines 68--73
 []\T1/cmr/m/n/10.95 Az ered-mÈnykÈpernyÆn meg-je-len-nek a munkamenet azonosÌt·
 s·hoz sz¸k-sÈges ala-pada-tok, pÈld·ul
  []
 
-) (./chapters/05.Bluetooth.tex [7]
-Overfull \hbox (15.14061pt too wide) in paragraph at lines 9--14
-\T1/cmr/m/n/10.95 gyelÈsÈt Ès az adatc-so-magok fo-gad·s·t vÈgzi. Ez azÈrt k¸lˆ
-nˆsen fontos, mert a Bluetooth-kommunik·ciÛ
+[8]) (./chapters/05.Bluetooth.tex [9]
+Overfull \hbox (28.87506pt too wide) in paragraph at lines 51--57
+\T1/cmr/m/n/10.95 blokk gon-do-skodik a keresÈs le·l-lÌt·s·rÛl, a GATT-kapcsola
+t bon-t·s·rÛl Ès az erÆ-for-r·-sok memÛriasziv·rg·s-
  []
 
-./chapters/05.Bluetooth.tex:15: Undefined control sequence.
-l.15 Az alkalmaz√°s egy \code
-                             {ScanFilter} seg√≠ts√©g√©vel a Sensoria szolg√°...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:17: Undefined control sequence.
-l.17 ...k√∂zt, le√°ll√≠tja a keres√©st, majd \code
-                                                  {connectGatt} h√≠v√°ssal G...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:26: Undefined control sequence.
-l.26 characteristic-et, amely t√°mogatja a \code
-                                                {NOTIFY} vagy \code{INDICATE...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:26: Undefined control sequence.
-l.26 ...mely t√°mogatja a \code{NOTIFY} vagy \code
-                                                  {INDICATE} tulajdons√°goka...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:28: Undefined control sequence.
-l.28 A \code
-            {NOTIFY} azt jelenti, hogy az eszk√∂z √∫j adat √©rkez√©sekor aut...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:29: Undefined control sequence.
-l.29 kliensnek, visszaigazol√°s n√©lk√ºl. Az \code
-                                                  {INDICATE} ehhez hasonl√≥a...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:40: Undefined control sequence.
-l.40 az Android rendszer megh√≠vja az \code
-                                           {onCharacteristicChanged} f√ºggv√...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:46: Undefined control sequence.
-l.46 A \code
-            {connectAndListen} f√ºggv√©ny egy \code{Flow<SensoriaData>} t√≠p...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:46: Undefined control sequence.
-l.46 ...ode{connectAndListen} f√ºggv√©ny egy \code
-                                                  {Flow<SensoriaData>} t√≠pu...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:48: Undefined control sequence.
-l.48 ...sszekapcsol√°s√°ra a megval√≥s√≠t√°s \code
-                                                  {callbackFlow}-t haszn√°l.
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:50: Undefined control sequence.
-l.50 ...°m√°ra. A kapcsolat lez√°r√°sakor az \code
-                                                  {awaitClose}
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-[8]
-./chapters/05.Bluetooth.tex:55: Undefined control sequence.
-l.55 Ehhez a \code
-                  {BitReader} seg√©doszt√°lyt haszn√°lja, amely egy b√°jtt√∂...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:61: Undefined control sequence.
-l.61 A \code
-            {ch0}, \code{ch1} √©s \code{ch2} mez≈ëk a talp k√ºl√∂nb√∂z≈ë pon...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:61: Undefined control sequence.
-l.61 A \code{ch0}, \code
-                        {ch1} √©s \code{ch2} mez≈ëk a talp k√ºl√∂nb√∂z≈ë pon...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:61: Undefined control sequence.
-l.61 A \code{ch0}, \code{ch1} √©s \code
-                                       {ch2} mez≈ëk a talp k√ºl√∂nb√∂z≈ë pon...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:62: Undefined control sequence.
-l.62 reprezent√°lj√°k, m√≠g az \code
-                                    {accelX}, \code{accelY} √©s \code{accelZ...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:62: Undefined control sequence.
-l.62 ...ezent√°lj√°k, m√≠g az \code{accelX}, \code
-                                                  {accelY} √©s \code{accelZ}...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:62: Undefined control sequence.
-l.62 ... az \code{accelX}, \code{accelY} √©s \code
-                                                  {accelZ} a l√°b h√°rom ten...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:65: Undefined control sequence.
-l.65 \code
-          {SensoriaData} objektum, amely m√°r struktur√°lt form√°ban tartalm...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:68: Undefined control sequence.
-l.68 A \code
-            {SensoriaData} adatmodell a szenzorb√≥l sz√°rmaz√≥ m√©r√©si √©rt...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:74: Undefined control sequence.
-l.74 ...r az alkalmaz√°s elkezdi gy≈±jteni a \code
-                                                  {Flow}-b√≥l √©rkez≈ë \code...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:74: Undefined control sequence.
-l.74 ...y≈±jteni a \code{Flow}-b√≥l √©rkez≈ë \code
-                                                  {SensoriaData}
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:82: Undefined control sequence.
-l.82 a \code
-            {BLUETOOTH\_SCAN} √©s a \code{BLUETOOTH\_CONNECT}. R√©gebbi verz...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-./chapters/05.Bluetooth.tex:82: Undefined control sequence.
-l.82 a \code{BLUETOOTH\_SCAN} √©s a \code
-                                         {BLUETOOTH\_CONNECT}. R√©gebbi verz...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-) (./chapters/06.Kameraesvideo.tex [9]) (./chapters/07.AdatesExport.tex)
-(./chapters/08.Eredmenyek.tex [10]
-Overfull \hbox (4.03395pt too wide) in paragraph at lines 15--17
-\T1/cmr/m/n/10.95 EzeknÈl a fe-lada-tokn·l az el-emzÈs fÆkÈnt az egyen-s˙-ly-ho
-z Ès ter-helÈselos-zl·shoz kapc-solÛdÛ jellemzÆket
- []
-
-./chapters/08.Eredmenyek.tex:43: Undefined control sequence.
-l.43 ...√∫ vizsg√°lat√°val t√∂rt√©nik. Ha az \code
-                                                  {accelZ} √©rt√©ke meghalad...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-
-Overfull \hbox (25.33891pt too wide) in paragraph at lines 43--44
-[]\T1/cmr/m/n/10.95 Dinamikus fe-lada-tokn·l az el-emzÈs m·s logik·t kˆvet. Ily
-enkor a cÈl a mozg·s is-mÈtlÆdÆ mint·zatainak,
- []
-
+) (./chapters/06.Kameraesvideo.tex [10]) (./chapters/07.AdatesExport.tex
 [11]
-./chapters/08.Eredmenyek.tex:68: Undefined control sequence.
-l.68 A \code
-            {StabilityCalculator} feladata a m√©r√©s k√∂zbeni stabilit√°si p...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+Overfull \hbox (20.0132pt too wide) in paragraph at lines 20--23
+\T1/cmr/m/n/10.95 amely plat-form-f¸ggetlen mÛ-don alakÌtja ·t a Kotlin adatosz
+t·-lyokat olvas·sra al-ka-lmas JSON (JavaScript
+ []
 
-[12]) [13] (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.aux)
+
+Overfull \hbox (16.88695pt too wide) in paragraph at lines 26--31
+\T1/cmr/m/n/10.95 A gen-er·lt JSON f·jl t·rol·sa az An-droid op-er·-ciÛs rend-s
+zer belsÆ, izol·lt t·rhe-lyÈn (\T1/cmtt/m/n/10.95 Context.filesDir\T1/cmr/m/n/1
+0.95 )
+ []
+
+) (./chapters/08.Eredmenyek.tex [12]
+Overfull \hbox (34.49612pt too wide) in paragraph at lines 33--35
+\T1/cmr/m/n/10.95 A mozg·st igÈnylÆ fe-lada-tokn·l (pÈld·ul hely-ben j·r·s, sÈt
+a) a fÛkusz a lÈpÈs-cik-lu-sokra Ès a mozg·skivitelezÈs
+ []
+
+[13]) (./chapters/09.Teszteles.tex [14]) (./chapters/10.Hogyantovabb.tex
+[15]) (./chapters/11.Osszegzes.tex)
+Overfull \hbox (5.8861pt too wide) in paragraph at lines 21--87
+[]\T1/cmr/m/n/10.95 ÷sszessÈgÈben az al-ka-lmaz·s a gyako-r-lat-ban is haszn·l-
+hatÛ es-zkˆzzÈ v·lt, amely je-len-leg a tesztelÈsi
+ []
+
+[16]
+Overfull \hbox (85.03731pt too wide) in paragraph at lines 88--88
+[]\T1/cmr/m/n/10.95 Google De-vel-op-ers. \T1/cmr/m/it/10.95 Blue-tooth-Gatt\T1
+/cmr/m/n/10.95 . https://developer.android.com/develop/connectivity/bluetooth/b
+le/connect-
+ []
+
+
+Overfull \hbox (16.64624pt too wide) in paragraph at lines 88--88
+[]\T1/cmr/m/n/10.95 Google De-vel-op-ers. \T1/cmr/m/it/10.95 Me-dia3 Ex-o-Playe
+r - Life-cy-cle and Mem-ory Man-age-ment\T1/cmr/m/n/10.95 . [][]$\T1/cmtt/m/n/1
+0.95 https : / / developer .
+ []
+
+[17]
+Overfull \hbox (23.9771pt too wide) in paragraph at lines 88--88
+[]\T1/cmr/m/n/10.95 Sensoria Fit-ness. \T1/cmr/m/it/10.95 Sen-so-ria Walk\T1/cm
+r/m/n/10.95 . Sen-so-ria Fit-ness Blog. ElÈrhetÆ: [][]$\T1/cmtt/m/n/10.95 https
+ : / / blog . sensoriafitness .
+ []
+
+[18] (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 
-Package rerunfilecheck Warning: File `doc.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
 
-Package rerunfilecheck Info: Checksums for `doc.out':
-(rerunfilecheck)             Before: F4571214823385C95E81678595EC7949;3477
-(rerunfilecheck)             After:  651B678E380E0C5DABFD8BB86B91B0AC;4146.
+LaTeX Warning: There were undefined references.
+
+Package rerunfilecheck Info: File `doc.out' has not changed.
+(rerunfilecheck)             Checksum: B8ECBD2A36F3AAFB1CE82C721C83DB79;9801.
+
+Package biblatex Warning: Please rerun LaTeX.
+
 Package logreq Info: Writing requests to 'doc.run.xml'.
 \openout1 = `doc.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 34226 strings out of 476182
- 659296 string characters out of 5795596
- 1933975 words of memory out of 5000000
- 55640 multiletter control sequences out of 15000+600000
- 571360 words of font info for 64 fonts, out of 8000000 for 9000
+ 34634 strings out of 476182
+ 669317 string characters out of 5795596
+ 1939975 words of memory out of 5000000
+ 55976 multiletter control sequences out of 15000+600000
+ 570820 words of font info for 64 fonts, out of 8000000 for 9000
  21 hyphenation exceptions out of 8191
- 84i,8n,93p,691b,1812s stack positions out of 10000i,1000n,20000p,200000b,200000s
- </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti1095
-.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/tcr
-m1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/e
-c/ecbx1200.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknap
-pen/ec/ecrm1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/
-jknappen/ec/ecbx1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/lj
-four/jknappen/ec/ecbx1440.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/
-pk/ljfour/jknappen/ec/ecrm1200.600pk> </home/gyberni15/.texlive2023/texmf-var/f
-onts/pk/ljfour/jknappen/ec/ecrm1440.600pk> </home/gyberni15/.texlive2023/texmf-
-var/fonts/pk/ljfour/jknappen/ec/ecbx2488.600pk></usr/share/texlive/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texlive/texmf-dist/fonts/t
-ype1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmsy10.pfb>
+ 84i,8n,93p,676b,2291s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/eccc1095
+.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/ec/ect
+i1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknappen/e
+c/ectt1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/jknap
+pen/ec/tcrm1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/ljfour/
+jknappen/ec/ecbx1200.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/pk/lj
+four/jknappen/ec/ecrm1095.600pk> </home/gyberni15/.texlive2023/texmf-var/fonts/
+pk/ljfour/jknappen/ec/ecbx1095.600pk> </home/gyberni15/.texlive2023/texmf-var/f
+onts/pk/ljfour/jknappen/ec/ecbx1440.600pk> </home/gyberni15/.texlive2023/texmf-
+var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </home/gyberni15/.texlive2023/t
+exmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1440.600pk> </home/gyberni15/.texlive2
+023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx2488.600pk>
 Output written on /home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/do
-c.pdf (14 pages, 236935 bytes).
+c.pdf (19 pages, 260176 bytes).
 PDF statistics:
- 585 PDF objects out of 1000 (max. 8388607)
- 228 compressed objects within 3 object streams
- 46 named destinations out of 1000 (max. 500000)
- 178 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 981 PDF objects out of 1000 (max. 8388607)
+ 472 compressed objects within 5 object streams
+ 100 named destinations out of 1000 (max. 500000)
+ 402 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,0 +1,38 @@
+\section{Az alakalmazás további fejlesztési lehetőségei}
+
+\subsection{Szerveres adattovábbítás és elemzés}
+
+A jelenlegi alkalmazás a gyakorlat videóit és a  mérési adatokat a készüléken lokálisan tárolja, az
+analízist a telefon saját erőforrásain végzi el és így jeleníti meg az adatokat.
+Ez nagy mértékben korlátozza a számítás komplexitását és a gyakorlatok során gyűjtött adatok mennyiségét.
+Erre lenne megoldás egy szerveres adattovábbítási és elemzési mechanizmus kialakítása, ez nem
+csak a telefont tehermentesítené, de lehetővé tenné olyan matematikai adatelemzési módszerek
+alkalmazását, amelyeket más környezet, például Python, R vagy MATLAB keretében könnyebben
+lehet megvalósítani, mint Androidon.
+
+
+\subsection{Platform kompatibilitás}
+
+Ahogy a dolgozat elején is említésre került, a jelenlegi alkalmazás Android rendszerre van
+megírva és tesztelve, mivel a Multiplatformos megközelítés lehetővé teszi, hogy később ez az
+alkalmazás iOS-en is futtatható legyen, megfelelő teszt eszköz biztosításával az alkalmazás
+iOS verziója is létrehozható a lokális környezetnek megfelelő videó- és fájlmenedzsment valamint
+a Bluetooth-kapcsolat kezelésének megvalósításával.
+
+\subsection{További adatelemzési módszerek}
+
+A jelenlegi rendszerben az elemzés elsősorban egyszerű statisztikai mutatókra és ökényesen definiált
+küszöbértékekre épül. Ezen módszerek szakemberrel való hitelesítése fontos lenne az
+alkalmazás teszt verzióján való túllépéshez.
+
+Illetve mivel a betegek testsúlya és mozgásmintázata eltérő, ezek a merev határértékek nem mindenkinél
+egyformán pontosak. Egy idősoros adatokra felkészített neurális hálózat (pl. LSTM) vagy egy felügyelt
+tanulással betanított modell (pl. Random Forest) képes lenne a nyers szenzoradatokból
+automatikusan megtanulni az egyéni mintázatokat, ezáltal sokkal robusztusabbá téve a lépésdetektálást
+és a Freezing of Gait (FoG) felismerését.
+
+Gépi tanulás segítségével az alkalmazás képessé válhatna előrejelzések készítésére is,
+például a jövőbeli esési kockázat megbecsülésére a járás asszimetriájának vagy a
+stabilitás hosszú távú romlásának felismerésével. Implementálható lenne a teljes lépésciklus
+folytonos fázisosztályozása (sarokleütés, gördülés, elrugaszkodás és lengési fázis
+mikromásodperces elkülönítése).

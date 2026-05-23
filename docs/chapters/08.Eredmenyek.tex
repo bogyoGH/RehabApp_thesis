@@ -1,86 +1,84 @@
 \section{Eredmények számítása és megjelenítése}
 
-A bemeneti adatok feladatonként címkézett mérési pontokból állnak, amelyek tartalmazzák a talpi
-nyomáscsatornák értékeit, a háromtengelyű gyorsulási adatokat, az időbélyeget és az adott gyakorlat
-nevét. Az elemzés célja nem orvosi diagnózis készítése, hanem olyan összesített mutatók előállítása,
-amelyek segítik a munkamenet későbbi áttekintését és összehasonlítását.
+A bemeneti adatok feladatonként címkézett, idősoros mérési pontokból állnak,
+amelyek tartalmazzák a talpi nyomáscsatornák (\texttt{ch0, ch1, ch2}) nyers értékeit,
+a normalizált háromtengelyű gyorsulási adatokat, valamint a rendszer-időbélyeget.
 
-Az elemzés első lépése az adatok szegmentálása. A rendszer a rögzített adatpontokat a hozzájuk tartozó
-feladatnév alapján csoportosítja, majd elkülöníti az aktív gyakorlatokat a pihenő vagy technikai
-állapotoktól. Erre azért van szükség, mert más típusú számítások értelmezhetők egy statikus
-egyensúlyi feladatnál, mint például egy járáshoz kapcsolódó dinamikus gyakorlatnál.
 
-\subsection{Statikus feladatok}
+\textbf{\subsection{Statikus feladatok jelfeldolgozása}}
 
-Ezeknél a feladatoknál az elemzés főként az egyensúlyhoz és terheléseloszláshoz kapcsolódó
-jellemzőket számolja
-\section{Eredmények számítása és megjelenítése}
+A statikus gyakorlatok (pl. kétlábas állás, tandem állás) során az algoritmus
+elsősorban az egyensúlyi helyzet és a stabilitás megtartását vizsgálja
+\cite{posturalcontrol}.
 
-Az alkalmazás elemzési része a munkamenet során rögzített szenzoradatokból dolgozik. A bemeneti adatok feladatonként címkézett mérési pontokból állnak, amelyek tartalmazzák a talpi nyomáscsatornák értékeit, a háromtengelyű gyorsulási adatokat, az időbélyeget és az adott gyakorlat nevét. Az elemzés célja nem orvosi diagnózis készítése, hanem olyan összesített mutatók előállítása, amelyek segítik a munkamenet későbbi áttekintését és összehasonlítását.
+\subsubsection{Súlypontvándorlás (Center of Pressure - CoP)}
 
-Az elemzés első lépése az adatok szegmentálása. A rendszer a rögzített adatpontokat a hozzájuk tartozó feladatnév alapján csoportosítja, majd elkülöníti az aktív gyakorlatokat a pihenő vagy technikai állapotoktól. Erre azért van szükség, mert más típusú számítások értelmezhetők egy statikus egyensúlyi feladatnál, mint például egy járáshoz kapcsolódó dinamikus gyakorlatnál.
+A súlypont kilengését a talp elülső része (lábujjak és talppárna) és a sarok közötti,
+illetve a lábfej jobb és bal oldala közötti nyomáskülönbségek alapján számítom.
+A vertikális tengelyen az algoritmus megvizsgálja, hogy a statikus mérés során a
+sarokterhelés átlagos aránya meghaladja-e a 65\%-ot a teljes talpnyomáshoz
+viszonyítva. Mivel a Parkinson-kóros betegekre gyakran jellemző a súlypont akaratlan
+hátrahelyeződése, így a hátraesés kockázata mérhető. A horizontális és vertikális
+kilengések  varianciájának összeadásával egy stabilitási mutatót kapunk.
 
-Statikus feladatok esetén az elemzés főként az egyensúlyhoz és a terheléseloszláshoz kapcsolódó jellemzőket számolja. A talp elülső részének terhelése a két elülső nyomáscsatorna összegeként jelenik meg:
+\subsubsection{Remegési index (Tremor)}
 
-\[
-    \text{forefoot} = ch0 + ch1
-\]
+A nyugalmi remegés kimutatására az algoritmus a háromdimenziós gyorsulásvektorok
+euklideszi normájának (hosszának) varianciáját számítja ki.
+A rendszer a statikus gravitációs hatást az átlagos gyorsulás levonásával vonja ki jelből,
+így az eredmény a láb mikro-rezgéseinek intenzitását reprezentálja.
 
-A teljes talpi terhelés ehhez képest:
+\subsection{Dinamikus feladatok jelfeldolgozása}
 
-\[
-    \text{totalPressure} = ch0 + ch1 + ch2
-\]
+A mozgást igénylő feladatoknál (például helyben járás, séta) a fókusz a lépésciklusokra
+és a mozgáskivitelezés minőségére helyeződik \cite{gaitanalysis}.
 
-Ebből számítható például a sarokterhelés aránya:
+\subsubsection{Lépésdetektálás és sarokleütés (Heel Strike)}
 
-\[
-    \text{heelRatio} = \frac{ch2}{\text{totalPressure}}
-\]
+A lépéseket a függőleges (z-irányú) gyorsulási adatok lokális maximumainak keresésével
+ detektálja az algoritmus, egy küszöbérték (550) alkalmazásával. A szenzorzajból
+eredő hamis dupla detektálások elkerülése érdekében a rendszer egy 15 mintavételi
+ciklusos holtidőt alkalmaz a lépések között. A lépés talajra érésének pillanatában a
+talpi nyomáseloszlás arányaiból kiszámítható a sarok érkezésének módja.
+Ez megmutatja, hogy a felhasználó a sarkán gördül-e, vagy a Parkinson-kórra
+jellemző csoszogó járást mutatja, ahol az előtalp terhelése a jellemző.
 
-A rendszer ebből átlagos sarokterhelési százalékot, előre-hátra irányú kilengést, oldalirányú terheléseltolódást, valamint ezek varianciájából kombinált kilengési mutatót állít elő. A gyorsulásadatok alapján remegéshez kapcsolódó index is számítható, amely a gyorsulás nagyságának változékonyságát veszi figyelembe.
+\subsubsection{Fáradási index}
 
-Dinamikus feladatoknál az elemzés más logikát követ. Ilyenkor a cél a mozgás ismétlődő mintázatainak, például a lépéseknek a felismerése. A lépésdetektálás a függőleges gyorsulási komponens küszöbérték-alapú vizsgálatával történik. Ha az \code{accelZ} értéke meghalad egy megadott küszöböt, és az előző detektált lépés óta eltelt egy minimális mintaszám, akkor a rendszer új lépést számol. Ez a holtidő csökkenti annak esélyét, hogy egyetlen mozgásból több lépés keletkezzen zaj vagy apró ingadozás miatt.
+A fáradás méréséhez a rendszer a munkamenet adatsorát megfelezi, majd kiszámítja
+az első és a második félidőben mért 3D gyorsulási vektorok átlagos energiáját (hosszát).
+A két érték közötti százalékos amplitúdócsökkenés megmutatja, hogy a gyakorlat végére
+mennyire esett vissza a végtagmozgás dinamikája.
 
-A dinamikus elemzés a lépésszám mellett a sarokhasználat minőségét is becsli. Ez azt mutatja meg, hogy a lépésdetektálások környezetében a teljes talpi terhelés mekkora része jelentkezett a saroknál:
+\subsection{Lefagyás (Freezing of Gait) detektálása}
 
-\[
-    \text{heelStrikeQuality} =
-    \frac{\text{heelStrikePressure}}{\text{totalStepPressure}} \cdot 100
-\]
+A Freezing of Gait (FoG) egy hirtelen, átmeneti epizód, amikor a beteg képtelen
+a járás folytatására. Detektálására az algoritmus egy 50 mintavételi pontból álló,
+folyamatosan csúszó időablakot alkalmaz az adatsoron \cite{fogdetection}.
+A lefagyást két egyidejű feltétel teljesülése azonosítja: a horizontális gyorsulások
+varianciája egy adott küszöbérték fölé ugrik (magas frekvenciájú lábremegés jelentkezik),
+miközben a maximális és minimális nyomásértékek különbsége minimális marad
+(a súlypont nem mozdul el, tehát nincs tényleges lépés).
 
-A rendszer továbbá a gyorsulásvektor nagyságából a mozgás intenzitásának változását is figyeli. A gyorsulás nagysága a három komponensből számítható:
+\section{Eredmények vizualizációja}
 
-\[
-    |a| = \sqrt{accelX^2 + accelY^2 + accelZ^2}
-\]
+A feldolgozott eredmények megjelenítése a Jetpack Compose rajzoló API-ja (\texttt{Canvas})
+segítségével történik, egyedi, hardveresen gyorsított grafikonokon.
 
-A munkamenet első és második felének átlagos gyorsulási magnitúdója összehasonlítható, ebből pedig egy amplitúdócsökkenési vagy fáradási jellegű mutató képezhető:
+\begin{itemize}
+\item Talpi nyomáseloszlás (Hőtérkép): A három nyomásszenzor átlagos
+értékeit egy lábfejet formázó alakzaton jeleníti meg, ahol a színátmenetek
+(zöldtől a pirosig)  jelzik a terhelés mértékét.
+\item Egyensúlyi helyzet (CoP Scatter Plot): Egy céltáblát formázó szórásdiagram,
+amely a nyomáskülönbségek alapján pontokként rajzolja ki a feladatok alatti horizontális
+és vertikális súlypontvándorlást.
+\item \textbf{Lépésciklusok (Ritmus-vonal):} A függőleges gyorsulás utolsó
+100 mérési pontját egy vonaldiagram ábrázolja, amely vizuálisan megmutatja a
+lépések ritmusát, egyenletességét vagy az esetleges aszimmetriát.
+\end{itemize}
 
-\[
-    \text{amplitudeDropoff} =
-    \frac{\text{avgEnergyFirst} - \text{avgEnergySecond}}
-    {\text{avgEnergyFirst}} \cdot 100
-\]
+\textbf{\subsection{A vizualizáció és az elemzés célja}}
 
-Ez nem klinikai értelemben vett fáradtságmérés, hanem az adott mérésen belüli mozgásintenzitás-változás egyszerű, összehasonlító jellegű mutatója.
-
-A \code{StabilityCalculator} feladata a mérés közbeni stabilitási pontszám előállítása. Ez a komponens a normalizált gyorsulási értékekből számolja ki a gyorsulásvektor euklideszi nagyságát:
-
-\[
-    \text{magnitude} = \sqrt{x^2 + y^2 + z^2}
-\]
-
-Ezt követően az értéket egy 0 és 100 közötti skálára alakítja:
-
-\[
-    \text{score} = 100 - \text{magnitude} \cdot 50
-\]
-
-A pontszám korlátozva van a 0--100 tartományra, majd egy tizedesjegyre kerekítve jelenik meg. A nagyobb gyorsulási kilengés alacsonyabb stabilitási értéket eredményez, míg a kisebb mozgásingadozás magasabb pontszámmal jár. Ez a mutató a feladat közbeni visszajelzést támogatja, nem pedig önálló diagnosztikai értékelést ad.
-
-Az alkalmazás egy további eseménytípust is számol: a járás közbeni lefagyáshoz hasonló mintázatok számát. A detektálás csúszóablakos vizsgálattal történik, ahol az algoritmus a gyorsulási adatok varianciáját és a talpi nyomásváltozás mértékét figyeli. Ha egy ablakban magas a vízszintes gyorsulási variancia, de közben alacsony a nyomásváltozás, akkor az alkalmazás ezt potenciális lefagyási eseményként számolja. Ezt is óvatosan kell értelmezni: a rendszer nem állapít meg klinikai \textit{Freezing of Gait} eseményt, hanem egy előre definiált mintázat előfordulását jelzi.
-
-Az eredmények megjelenítése az eredményképernyőn történik. A felület először összegző kártyákon mutatja a főbb mutatókat, például a fáradási indexet és a potenciális lefagyási események számát. Ezt vizuális elemek egészítik ki: a talpi nyomáseloszlás hőtérképen jelenik meg, az egyensúlyhoz kapcsolódó súlypontvándorlás pontdiagramon látható, a járásritmus pedig vonaldiagramként kerül kirajzolásra. A részletes eredmények feladatonként jelennek meg, így a statikus és dinamikus gyakorlatokhoz eltérő mutatók társíthatók.
-
-A megjelenítés célja, hogy a rögzített mérési adatokból átlátható, összehasonlítható és könnyebben értelmezhető visszajelzés készüljön. Az alkalmazás tehát nem a beteg állapotának orvosi minősítését végzi, hanem a munkamenethez kapcsolódó szenzoradatokat rendezi, összegzi és vizuálisan megjeleníti.
+A vizualizáció célja nem egy diagnosztikai eszköz létrehozása volt, hanem inkább példákon
+keresztül bemutatni, hogy a gyakorlatok során gyűjtött adatok hogyan értelmezhetők és milyen
+információkat hordozhatnak.

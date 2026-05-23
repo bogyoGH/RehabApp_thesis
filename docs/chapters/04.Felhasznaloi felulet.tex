@@ -4,9 +4,6 @@ A felhasználói felület nem egyetlen összetett nézetben tartalmazza az alkal
 hanem a munkamenet fő lépéseihez igazodva külön képernyőkre bontja azokat.
 Ez a felépítés segíti az áttekinthetőséget, mivel a felhasználó minden lépésben csak az adott
 művelethez szükséges információkkal és vezérlőelemekkel találkozik.
-A képernyők Compose-alapú komponensekből épülnek fel, így a megjelenített tartalom az
-alkalmazás aktuális állapotához igazodik.
-
 
 
 \subsection{Konfigurációs képernyő}
@@ -36,8 +33,9 @@ korábban mentett munkamenetek is. A képernyő így a mérési folyamat kiindul
 \subsection{Végrehajtási képernyő}
 
 A végrehajtási képernyő a konfigurációs képernyőről indított mérés után jelenik meg.
-A munkamenet elején a felhasználó kiválaszthatja, milyen megjelenítési módot szeretne használni
-a gyakorlatok végrehajtása közben. Lehetőség van csak a feladatot bemutató videó megjelenítésére,
+A mérés megkezdése előtt a felhasználó egy felugró ablakban (dialog) választhatja ki a
+kívánt vizuális visszacsatolási módot.
+Lehetőség van csak a feladatot bemutató videó megjelenítésére,
 csak az előlapi kamera képének megjelenítésére, illetve a kettő egyidejű,
 egymás melletti megjelenítésére.
 
@@ -54,7 +52,7 @@ Ez fontos szempont az eredmények értelmezhetősége és a tárolt adatok köve
 
 
 A gyakorlatok végrehajtása közben a felület a kiválasztott megjelenítési módnak megfelelő
-videós tartalmat jeleníti meg. A videó alatt a nem valós idejű szöveges instrukciók szerepelnek,
+videós tartalmat jeleníti meg. A videó alatt a statikus szöveges instrukciók szerepelnek,
 illetve a stabilitási adatok jelennek meg, amelyek az aktuális végrehajtásról adnak közvetlen
 visszajelzést a felhasználónak.
 
