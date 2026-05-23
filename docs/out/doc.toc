@@ -42,8 +42,8 @@
 \contentsline {section}{\numberline {10}Tesztelés és validáció}{14}{section.10}%
 \contentsline {subsection}{\numberline {10.1}Fizikai és emulált tesztkörnyezet}{14}{subsection.10.1}%
 \contentsline {subsection}{\numberline {10.2}Adatgenerálás (Mocking)}{15}{subsection.10.2}%
-\contentsline {section}{\numberline {11}Az alakalmazás további fejlesztési lehetőségei}{15}{section.11}%
+\contentsline {section}{\numberline {11}Az alkalmazás további fejlesztési lehetőségei}{15}{section.11}%
 \contentsline {subsection}{\numberline {11.1}Szerveres adattovábbítás és elemzés}{15}{subsection.11.1}%
-\contentsline {subsection}{\numberline {11.2}Platform kompatibilitás}{15}{subsection.11.2}%
-\contentsline {subsection}{\numberline {11.3}További adatelemzési módszerek}{16}{subsection.11.3}%
+\contentsline {subsection}{\numberline {11.2}Platformfüggetlenség kiterjesztése}{15}{subsection.11.2}%
+\contentsline {subsection}{\numberline {11.3}Fejlett adatelemzési módszerek és gépi tanulás}{16}{subsection.11.3}%
 \contentsline {section}{\numberline {12}Összegzés}{16}{section.12}%

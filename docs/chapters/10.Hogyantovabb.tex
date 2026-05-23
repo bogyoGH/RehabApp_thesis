@@ -1,38 +1,40 @@
-\section{Az alakalmazás további fejlesztési lehetőségei}
+\section{Az alkalmazás további fejlesztési lehetőségei}
 
 \subsection{Szerveres adattovábbítás és elemzés}
 
-A jelenlegi alkalmazás a gyakorlat videóit és a  mérési adatokat a készüléken lokálisan tárolja, az
-analízist a telefon saját erőforrásain végzi el és így jeleníti meg az adatokat.
-Ez nagy mértékben korlátozza a számítás komplexitását és a gyakorlatok során gyűjtött adatok mennyiségét.
-Erre lenne megoldás egy szerveres adattovábbítási és elemzési mechanizmus kialakítása, ez nem
-csak a telefont tehermentesítené, de lehetővé tenné olyan matematikai adatelemzési módszerek
-alkalmazását, amelyeket más környezet, például Python, R vagy MATLAB keretében könnyebben
-lehet megvalósítani, mint Androidon.
+Az alkalmazás jelenleg az adatokat lokálisan a telefonon tárolja és dolgozza fel.
+Bár ez az adatvédelmi szempontból előnyös, a mobileszközök véges számítási kapacitása
+és tárhelye korlátozza az elemzések komplexitását és a hosszú távon gyűjthető
+adatok mennyiségét. Egy felhőalapú (szerveres) szinkronizációval lehetővé tenné
+az adatok biztonságos továbbítását egy központi rendszerbe. Ez nemcsak a telefont
+tehermentesítené, hanem más adatelemzésre alkalmasabb eszközök pélául Python, R vagy
+MATLAB használatát is lehetővé tenné.
 
+\subsection{Platformfüggetlenség kiterjesztése}
 
-\subsection{Platform kompatibilitás}
+Ahogy a dolgozat elején is említésre került, az alkalmazás logikája a Kotlin
+Multiplatform megközelítésre épül, a jelenlegi megvalósítás és
+tesztelés azonban kizárólag Android környezetben történt. Megfelelő Apple
+teszteszközök biztosításával a jövőben elkészíthető lenne az iOS verzió is,
+amelyhez a meglévő közös kódok mellett csupán az operációsrendszer-specifikus
+funkciókat (fájlkezelés, Bluetooth) kell implementálni.
 
-Ahogy a dolgozat elején is említésre került, a jelenlegi alkalmazás Android rendszerre van
-megírva és tesztelve, mivel a Multiplatformos megközelítés lehetővé teszi, hogy később ez az
-alkalmazás iOS-en is futtatható legyen, megfelelő teszt eszköz biztosításával az alkalmazás
-iOS verziója is létrehozható a lokális környezetnek megfelelő videó- és fájlmenedzsment valamint
-a Bluetooth-kapcsolat kezelésének megvalósításával.
+\textbf{\subsection{Fejlett adatelemzési módszerek és gépi tanulás}}
 
-\subsection{További adatelemzési módszerek}
+A jelenlegi rendszerben az elemzés elsősorban determinisztikus statisztikai mutatókra
+és önkényesen definiált, empirikus küszöbértékekre épül. Ezen mérési módszerek
+orvos vagy terepeuta által történő validációja lenne szükséges az alkalmazás prototípus
+fázisból való továbblépésének.
 
-A jelenlegi rendszerben az elemzés elsősorban egyszerű statisztikai mutatókra és ökényesen definiált
-küszöbértékekre épül. Ezen módszerek szakemberrel való hitelesítése fontos lenne az
-alkalmazás teszt verzióján való túllépéshez.
+Mivel a felhasználók testsúlya, testalkata és mozgásmintázata jelentősen eltérő,
+a merev határértékek nem mindenkinél biztosítanak egyformán pontos eredményt.
+Egy idősoros adatokra felkészített mélytanuló neurális hálózat
+(például LSTM - Long Short-Term Memory) vagy egy felügyelt tanítással
+implementált Random Forest modell képes lenne a nyers szenzoradatokból
+automatikusan megtanulni az egyéni mintázatokat.
 
-Illetve mivel a betegek testsúlya és mozgásmintázata eltérő, ezek a merev határértékek nem mindenkinél
-egyformán pontosak. Egy idősoros adatokra felkészített neurális hálózat (pl. LSTM) vagy egy felügyelt
-tanulással betanított modell (pl. Random Forest) képes lenne a nyers szenzoradatokból
-automatikusan megtanulni az egyéni mintázatokat, ezáltal sokkal robusztusabbá téve a lépésdetektálást
-és a Freezing of Gait (FoG) felismerését.
+A gépi tanulás integrálásával az alkalmazás képessé válhatna prediktív
+analitikák készítésére is: felismerhetné a járás aszimmetriájának hosszú távú romlását,
+ezáltal megbecsülve a jövőbeli esési kockázatot.
+Továbbá algoritmus szinten megvalósíthatóvá válna a teljes lépésciklus osztályozása.
 
-Gépi tanulás segítségével az alkalmazás képessé válhatna előrejelzések készítésére is,
-például a jövőbeli esési kockázat megbecsülésére a járás asszimetriájának vagy a
-stabilitás hosszú távú romlásának felismerésével. Implementálható lenne a teljes lépésciklus
-folytonos fázisosztályozása (sarokleütés, gördülés, elrugaszkodás és lengési fázis
-mikromásodperces elkülönítése).

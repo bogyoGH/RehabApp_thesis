@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.5.9)  23 MAY 2026 21:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2026.5.9)  23 MAY 2026 22:03
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -1142,24 +1142,24 @@ runsystem(rm doc.aex)...executed.
  (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.aux)
 \openout1 = `doc.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 29.
-LaTeX Font Info:    ... okay on input line 29.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 28.
+LaTeX Font Info:    ... okay on input line 28.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1195,7 +1195,7 @@ LaTeX Font Info:    ... okay on input line 29.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-Package hyperref Info: Link coloring ON on input line 29.
+Package hyperref Info: Link coloring ON on input line 28.
 (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.out)
 (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.out)
 \@outlinefile=\write7
@@ -1219,8 +1219,8 @@ Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'doc.bbl' found.
 
 (/home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/doc.bbl)
-Package biblatex Info: Reference section=0 on input line 29.
-Package biblatex Info: Reference segment=0 on input line 29.
+Package biblatex Info: Reference section=0 on input line 28.
+Package biblatex Info: Reference segment=0 on input line 28.
 
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -1244,7 +1244,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Option `pageanchor' set `false' on input line 31.
+Package hyperref Info: Option `pageanchor' set `false' on input line 30.
 <itk_logo_eng.png, id=199, 596.9502pt x 563.706pt>
 File: itk_logo_eng.png Graphic file (type png)
 <use itk_logo_eng.png>
@@ -1344,28 +1344,39 @@ a) a fókusz a lépés-cik-lu-sokra és a mozgáskivitelezés
  []
 
 [13]) (./chapters/09.Teszteles.tex [14]) (./chapters/10.Hogyantovabb.tex
-[15]) (./chapters/11.Osszegzes.tex)
-Overfull \hbox (5.8861pt too wide) in paragraph at lines 21--87
+Overfull \hbox (12.71194pt too wide) in paragraph at lines 15--21
+\T1/cmr/m/n/10.95 Ahogy a dol-go-zat ele-jén is em-lítésre került, az al-ka-lma
+zás logikája a Kotlin Mul-ti-plat-form megközelítésre
+ []
+
+[15]
+Overfull \hbox (13.80548pt too wide) in paragraph at lines 29--35
+[]\T1/cmr/m/n/10.95 Mivel a fel-használók test-súlya, testalkata és mozgás-mint
+ázata je-len-t®sen eltér®, a merev határértékek
+ []
+
+) (./chapters/11.Osszegzes.tex)
+Overfull \hbox (5.8861pt too wide) in paragraph at lines 21--90
 []\T1/cmr/m/n/10.95 Összességében az al-ka-lmazás a gyako-r-lat-ban is használ-
 ható es-zközzé vált, amely je-len-leg a tesztelési
  []
 
 [16]
-Overfull \hbox (85.03731pt too wide) in paragraph at lines 88--88
+Overfull \hbox (85.03731pt too wide) in paragraph at lines 93--93
 []\T1/cmr/m/n/10.95 Google De-vel-op-ers. \T1/cmr/m/it/10.95 Blue-tooth-Gatt\T1
 /cmr/m/n/10.95 . https://developer.android.com/develop/connectivity/bluetooth/b
 le/connect-
  []
 
 
-Overfull \hbox (16.64624pt too wide) in paragraph at lines 88--88
+Overfull \hbox (16.64624pt too wide) in paragraph at lines 93--93
 []\T1/cmr/m/n/10.95 Google De-vel-op-ers. \T1/cmr/m/it/10.95 Me-dia3 Ex-o-Playe
 r - Life-cy-cle and Mem-ory Man-age-ment\T1/cmr/m/n/10.95 . [][]$\T1/cmtt/m/n/1
 0.95 https : / / developer .
  []
 
 [17]
-Overfull \hbox (23.9771pt too wide) in paragraph at lines 88--88
+Overfull \hbox (23.9771pt too wide) in paragraph at lines 93--93
 []\T1/cmr/m/n/10.95 Sensoria Fit-ness. \T1/cmr/m/it/10.95 Sen-so-ria Walk\T1/cm
 r/m/n/10.95 . Sen-so-ria Fit-ness Blog. Elérhet®: [][]$\T1/cmtt/m/n/10.95 https
  : / / blog . sensoriafitness .
@@ -1376,15 +1387,8 @@ r/m/n/10.95 . Sen-so-ria Fit-ness Blog. Elérhet®: [][]$\T1/cmtt/m/n/10.95 https
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
-
-
-LaTeX Warning: There were undefined references.
-
 Package rerunfilecheck Info: File `doc.out' has not changed.
-(rerunfilecheck)             Checksum: B8ECBD2A36F3AAFB1CE82C721C83DB79;9801.
-
-Package biblatex Warning: Please rerun LaTeX.
-
+(rerunfilecheck)             Checksum: 5812E58B1060604CE99FC3ED1E11757C;9952.
 Package logreq Info: Writing requests to 'doc.run.xml'.
 \openout1 = `doc.run.xml'.
 
@@ -1410,9 +1414,9 @@ var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk> </home/gyberni15/.texlive2023/t
 exmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1440.600pk> </home/gyberni15/.texlive2
 023/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx2488.600pk>
 Output written on /home/gyberni15/suli/onlab/rehabApp/KotlinProject/docs/out/do
-c.pdf (19 pages, 260176 bytes).
+c.pdf (19 pages, 259352 bytes).
 PDF statistics:
- 981 PDF objects out of 1000 (max. 8388607)
+ 979 PDF objects out of 1000 (max. 8388607)
  472 compressed objects within 5 object streams
  100 named destinations out of 1000 (max. 500000)
  402 words of extra memory for PDF output out of 10000 (max. 10000000)
