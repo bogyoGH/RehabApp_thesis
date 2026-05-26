@@ -35,7 +35,7 @@ actual class SensoriaBluetoothManager actual constructor(
 
     private val sensoriaServiceUuid: UUID =
         UUID.fromString("1cac0001-656e-696c-4b5f-6e6572726157")
-//1cac0003-656e-696c-4b5f-6e6572726157(?)
+    //1cac0003-656e-696c-4b5f-6e6572726157(?)
     private val cccdUuid: UUID =
         UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
@@ -133,19 +133,11 @@ actual class SensoriaBluetoothManager actual constructor(
                 service.characteristics.forEach { char ->
                     println("👉 Talált csatorna: ${char.uuid} | Properties: ${char.properties}")
                 }
+                val targetUuid = UUID.fromString("1cac0003-656e-696c-4b5f-6e6572726157")
 
-                val notifyCharacteristic =
-                    service.characteristics.firstOrNull { characteristic ->
-                        val props = characteristic.properties
-
-                        val hasNotify =
-                            props and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0
-
-                        val hasIndicate =
-                            props and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0
-
-                        hasNotify || hasIndicate
-                    }
+                val notifyCharacteristic = service.characteristics.firstOrNull { characteristic ->
+                    characteristic.uuid == targetUuid
+                }
 
                 if (notifyCharacteristic == null) {
                     onStatusChange("❌ Notify characteristic nem található")

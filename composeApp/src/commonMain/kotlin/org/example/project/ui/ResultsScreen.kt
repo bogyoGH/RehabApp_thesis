@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.project.*
+import kotlin.math.sqrt
 
 @Composable
 fun ResultsScreen(
@@ -159,50 +160,101 @@ fun InfoCard(modifier: Modifier, title: String, value: String, color: Color) {
 
 @Composable
 fun FootHeatmap(data: List<SensoriaData>) {
-    val avgCh0 = if (data.isNotEmpty()) data.map { it.ch0 }.average().toFloat() else 0f
-    val avgCh1 = if (data.isNotEmpty()) data.map { it.ch1 }.average().toFloat() else 0f
-    val avgCh2 = if (data.isNotEmpty()) data.map { it.ch2 }.average().toFloat() else 0f
-    val maxVal = 1023f // Sensoria max értéke
+    if (data.isEmpty()) return
 
-    Canvas(modifier = Modifier.size(200.dp).padding(16.dp)) {
-        val path = Path().apply {
-            moveTo(size.width * 0.3f, size.height * 0.1f)
-            quadraticTo(size.width * 0.1f, size.height * 0.5f, size.width * 0.3f, size.height * 0.9f)
-            lineTo(size.width * 0.7f, size.height * 0.9f)
-            quadraticTo(size.width * 0.9f, size.height * 0.5f, size.width * 0.7f, size.height * 0.1f)
-            close()
-        }
-        drawPath(path, color = Color.DarkGray, style = Stroke(width = 2f))
+    // 1. Kiszűrjük azokat a pillanatokat, amikor a beteg felemelte a lábát (levegőben volt).
+    // Csak a tényleges "talajfogást" akarjuk átlagolni!
+    val activeData = data.filter { (it.ch0 + it.ch1 + it.ch2) > 100 }
 
-        fun getColor(value: Float) = Color(
-            red = (value / maxVal).coerceIn(0f, 1f),
-            green = (1f - (value / maxVal)).coerceIn(0f, 1f),
-            blue = 0.2f
+    // Ha valamiért nem volt aktív adat, biztonságból használjuk az eredetit, hogy ne fagyjon le
+    val validData = if (activeData.isNotEmpty()) activeData else data
+
+    // 2. Kiszámoljuk az aktív fázisok átlagát
+    val avgCh0 = validData.map { it.ch0 }.average().toFloat()
+    val avgCh1 = validData.map { it.ch1 }.average().toFloat()
+    val avgCh2 = validData.map { it.ch2 }.average().toFloat()
+
+    // 3. Fix 1023-as hardveres maximumhoz viszonyítunk.
+    // Így egy közepes terhelés szépen sárga marad, és csak a durva aszimmetria lesz piros.
+    val maxPressure = 1023f
+
+    Canvas(modifier = Modifier.size(200.dp).background(Color.Transparent)) {
+        // ch0 - Előtalp belső (Nagylábujj alatti párna)
+        drawCircle(
+            color = getHeatmapColor(avgCh0.toInt(), maxPressure),
+            radius = 45f,
+            center = Offset(size.width * 0.35f, size.height * 0.25f)
         )
 
-        drawCircle(getColor(avgCh0), radius = 25f, center = Offset(size.width * 0.35f, size.height * 0.25f))
-        drawCircle(getColor(avgCh1), radius = 25f, center = Offset(size.width * 0.65f, size.height * 0.25f))
-        drawCircle(getColor(avgCh2), radius = 35f, center = Offset(size.width * 0.5f, size.height * 0.75f))
+        // ch1 - Előtalp külső (Kisujj alatti párna)
+        drawCircle(
+            color = getHeatmapColor(avgCh1.toInt(), maxPressure),
+            radius = 45f,
+            center = Offset(size.width * 0.65f, size.height * 0.25f)
+        )
+
+        // ch2 - Sarok
+        drawCircle(
+            color = getHeatmapColor(avgCh2.toInt(), maxPressure),
+            radius = 55f,
+            center = Offset(size.width * 0.5f, size.height * 0.75f)
+        )
     }
+}
+fun getHeatmapColor(rawPressure: Int, maxInSession: Float = 1023f): Color {
+    val safetyMax = if (maxInSession <= 0f) 1023f else maxInSession
+    val normalized = (rawPressure.toFloat() / safetyMax).coerceIn(0f, 1f)
+    val enhanced = kotlin.math.sqrt(normalized) // Kontrasztkiemelés
+    val hue = 120f * (1f - enhanced) // 120 = Zöld, 0 = Piros
+    return Color.hsv(hue = hue, saturation = 1f, value = 1f)
 }
 
 @Composable
 fun SwayScatterPlot(data: List<SensoriaData>) {
-    Canvas(modifier = Modifier.size(250.dp).background(Color.Black).padding(8.dp)) {
-        drawCircle(Color.DarkGray, style = Stroke(1f), radius = size.width / 2)
-        drawCircle(Color.DarkGray, style = Stroke(1f), radius = size.width / 4)
+    Canvas(modifier = Modifier.size(250.dp).padding(16.dp)) {
+        val cx = size.width / 2
+        val cy = size.height / 2
+        val maxRadius = size.width / 2
 
-        data.takeLast(200).forEach { point ->
+        // Céltábla (Háttér) kirajzolása
+        drawCircle(Color.DarkGray.copy(alpha = 0.4f), style = Stroke(2f), radius = maxRadius)
+        drawCircle(Color.DarkGray.copy(alpha = 0.4f), style = Stroke(2f), radius = maxRadius * 0.5f)
+        drawLine(Color.DarkGray.copy(alpha = 0.3f), start = Offset(cx, 0f), end = Offset(cx, size.height))
+        drawLine(Color.DarkGray.copy(alpha = 0.3f), start = Offset(0f, cy), end = Offset(size.width, cy))
+
+        // Csak az utolsó 300 pontot rajzoljuk, hogy ne legyen egy hatalmas paca az egész
+        data.takeLast(300).forEach { point ->
             val total = (point.ch0 + point.ch1 + point.ch2).toFloat()
-            if (total > 0) {
-                val x = ((point.ch1 - point.ch0).toFloat() / total) * size.width + (size.width / 2)
-                val y = (point.ch2.toFloat() / total) * size.height
-                drawCircle(Color(0xFF64B5F6), radius = 3f, center = Offset(x, y), alpha = 0.5f)
+
+            // Csak akkor rajzolunk pontot, ha a beteg tényleg ráállt a zoknira (nem a levegőben lóbálja)
+            if (total > 10f) {
+                val frontTotal = (point.ch0 + point.ch1).toFloat()
+
+                // X tengely: Bal (ch0) és Jobb (ch1) egyensúly. Értéke: -1.0 és +1.0 között
+                val rawXRatio = if (frontTotal > 0) (point.ch1 - point.ch0) / frontTotal else 0f
+
+                // Y tengely: Sarok (ch2) és Előtalp (frontTotal) egyensúly. Értéke: -1.0 és +1.0 között
+                val rawYRatio = (point.ch2 - frontTotal) / total
+
+                // Vektorhossz számítása (Pitagorasz-tétel) a kilógás megakadályozására
+                val magnitude = kotlin.math.sqrt((rawXRatio * rawXRatio) + (rawYRatio * rawYRatio))
+
+                // Ha a pont kilógna a körből (magnitude > 1), visszaskálázzuk pontosan 1-re!
+                val scale = if (magnitude > 1f) 1f / magnitude else 1f
+
+                val finalXRatio = rawXRatio * scale
+                val finalYRatio = rawYRatio * scale
+
+                // Kiszámoljuk a végső koordinátákat a 0.85-ös szorzóval (így hagyunk egy kis belső margót is)
+                val x = cx + (finalXRatio * maxRadius * 0.85f)
+                val y = cy + (finalYRatio * maxRadius * 0.85f)
+
+                // Pont kirajzolása (áttetsző kékkel, hogy a sűrűsödés szépen látszódjon)
+                drawCircle(Color(0xFF64B5F6), radius = 4f, center = Offset(x, y), alpha = 0.6f)
             }
         }
     }
 }
-
 @Composable
 fun RhythmLineChart(data: List<SensoriaData>) {
     Canvas(modifier = Modifier.fillMaxWidth().height(150.dp).padding(16.dp)) {

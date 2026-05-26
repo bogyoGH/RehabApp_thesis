@@ -11,37 +11,37 @@ enum class RehabTaskType(
     val videoName: String
 ) {
     TWO_LEG_STANDING(
-        "Two-leg standing",
-        "Stand still with both feet on the ground",
-        "Stand with feet shoulder-width apart",
+        "Kétlábas állás",
+        "Álljon nyugodtan, mindkét lábával a talajon.",
+        "Álljon vállszélességű terpeszben.",
         "buffer"
     ),
     ONE_LEG_LEFT(
-        "One-leg standing (Left)",
-        "Stand on your left foot, keep balance",
-        "Balance on LEFT foot",
+        "Egylábas állás (Bal)",
+        "Álljon a bal lábán, tartsa meg az egyensúlyát.",
+        "Egyensúlyozzon a BAL lábán.",
         "oneleg_left"
     ),
     ONE_LEG_RIGHT(
-        "One-leg standing (Right)",
-        "Stand on your right foot, keep balance",
-        "Balance on RIGHT foot",
+        "Egylábas állás (Jobb)",
+        "Álljon a jobb lábán, tartsa meg az egyensúlyát.",
+        "Egyensúlyozzon a JOBB lábán.",
         "oneleg_right"
     ),
     TOE_WALKING(
-        "Toe walking",
-        "Walk on your toes, maintain stability",
-        "Walk on TIPTOES",
+        "Lábujjhegyen járás",
+        "Sétáljon lábujjhegyen, ügyelve az egyensúlyára.",
+        "Sétáljon LÁBUJJHEGYEN.",
         "toewalk"
     ),
     HEEL_WALKING(
-        "Heel walking",
-        "Walk on your heels, careful with balance",
-        "Walk on HEELS",
+        "Sarkon járás",
+        "Sétáljon a sarkán, óvatosan egyensúlyozva.",
+        "Sétáljon SARKON.",
         "heelwalk"
     ),
     TANDEM_WALKING(
-        "Tandem walking",
+        "Tandem állás",
         "Álljon úgy, hogy az egyik lába sarka érintse a másik lába lábujjait.",
         "Kötéltáncos állás",
         "buffer"

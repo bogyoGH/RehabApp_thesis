@@ -18,17 +18,46 @@ A rehabilitációs mozgássorozat kétféleképpen állítható össze:
 \begin{itemize}
     \item Egy előre meghatározott gyakorlatsor használata, amely egy specifikusan
     összeállított rehabilitációs feladatsort tartalmaz. Ebben az esetben a gyakorlatok sorrendje
-    adott, a hozzájuk tartozó időtartamok azonban módosíthatók.
+    adott, a hozzájuk tartozó időtartamok azonban módosíthatók. Ez látszik a \ref{con1}. ábrán.
     \item Egyéni feladatsor összeállítása. Ez akkor hasznos, ha az előre definiált gyakorlatsor
     nem illeszkedik a felhasználó aktuális rehabilitációs szakaszához vagy állapotához.
     Ilyenkor a felhasználó egy legördülő listából választhatja ki a kívánt gyakorlatokat,
     megadhatja azok időtartamát, majd tetszőleges sorrendben hozzáadhatja őket a munkamenethez.
+    Ez a folyamat a \ref{con2}. és \ref{con3}. ábrákon látható.
 \end{itemize}
 
 
 A konfigurációs képernyőről indítható el a mérés, valamint innen érhetők el a
 korábban mentett munkamenetek is. A képernyő így a mérési folyamat kiindulópontjaként működik.
 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/config2}
+        \caption{A konfigurációs képernyő teteje, ahol a Bluetooth-kapcsolat állapotát és a felhasználó nevét lehet megadni,
+        illetve látszanak a standard feladatsorok változtatható idővel.}
+        \label{con1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/config1}
+        \caption{A konfigurációs képernyő alja az egyéni feladatokkal, még nincs feladat hozzáadva,
+        így se menteni, se törölni nem lehet, innen el lehet navigálni a mentett munkamenetekhez.}
+        \label{con2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/config3}
+        \caption{A konfigurációs képernyő alja egyéni feladatokkal, ahol már hozzáadtunk egy gyakorlatot, így megjelentek a mentés és törlés gombok is.}
+        \label{con3}
+    \end{subfigure}
+    \caption{Konfigurációs képernyő}
+    \label{con}
+\end{figure}
 
 \subsection{Végrehajtási képernyő}
 
@@ -37,10 +66,11 @@ A mérés megkezdése előtt a felhasználó egy felugró ablakban (dialog) vál
 kívánt vizuális visszacsatolási módot.
 Lehetőség van csak a feladatot bemutató videó megjelenítésére,
 csak az előlapi kamera képének megjelenítésére, illetve a kettő egyidejű,
-egymás melletti megjelenítésére.
+egymás melletti megjelenítésére. Ezek az opciók a \ref{ex1}. ábrán láthatók.
 
 
 Minden gyakorlat előtt egy rövid, öt másodperces előkészítő szakasz jelenik meg.
+Ez látszik a \ref{ex2}. ábrán.
 Ebben az időszakban a felhasználó a gyakorlatot bemutató videót látja,
 így még a mérés kezdete előtt megfigyelheti a helyes végrehajtást.
 A tényleges adatgyűjtés és a gyakorlat végrehajtása csak ezt követően indul el.
@@ -57,6 +87,34 @@ illetve a stabilitási adatok jelennek meg, amelyek az aktuális végrehajtásr�
 visszajelzést a felhasználónak.
 
 
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/ex2}
+        \caption{A kamera választási opcciók láthatók a mérés indítása után}
+        \label{ex1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/bemuato}
+        \caption{Minden feladat előtt egy rövid, öt másodperces előkészítő szakasz jelenik meg, ahol a gyakorlatot bemutató videó látható.}
+        \label{ex2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/feladat1}
+        \caption{A gyakorlatok végrehajtása közben a kiválasztott megjelenítési módnak megfelelő videós tartalom jelenik meg, a videó alatt pedig a statikus szöveges instrukciók és a stabilitási adatok láthatók.
+        Mivel a végrehajtás közben nem tudtam képernyőképet készíteni, ezért csak az az opció látható, ahol a gyakorlatot bemutató videó látszik}
+        \label{ex3}
+    \end{subfigure}
+    \caption{Végrehajtási képernyő}
+    \label{ex}
+\end{figure}
+
+
 \subsection{Eredményképernyő}
 
 A mérés lezárása után az alkalmazás automatikusan az eredményképernyőre navigál.
@@ -70,6 +128,27 @@ például a felhasználó neve és a mérés időpontja.
 Emellett láthatók a végrehajtott gyakorlatokhoz kapcsolódó eredmények,
 valamint a szenzoradatokból számított mutatók. Ezek az információk a munkamenet későbbi
 áttekintését és összehasonlítását támogatják.
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/res1}
+        \caption{Az eredményképernyő teteje, ahol a globális elemzés eredményei láthatók.}
+        \label{fig:res1}
+    \end{subfigure}
+    \hspace{0.03\textwidth}
+    \begin{subfigure}[t]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{images/res2}
+        \caption{A külön gyakolatokhoz tartozó eredmények láthatók, ahol a gyakorlat neve, a végrehajtás időtartama és a stabilitási mutató jelenik meg.}
+        \label{fig:res2}
+    \end{subfigure}
+
+    \caption{Eredményképernyő, generált adatokkal}
+    \label{fig:res}
+\end{figure}
 
 \subsection{Mentett munkamenet képernyő}
 
@@ -89,3 +168,10 @@ A nem kívánt vagy már nem szükséges munkamenetek manuálisan törölhetők 
 Ez lehetőséget ad arra, hogy a felhasználó vagy a fejlesztő szükség esetén eltávolítsa a már nem
 releváns mérési adatokat.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{images/Mentett}
+    \caption{A mentett adatok képernyője, látsz a fájlelnevezés konvenciója, a gráf ikonra
+    kattintva újra meg lehet jeleníteni az eredmények vizualizációját, illetve törölni lehet őket.}
+    \label{savemylife}
+\end{figure}

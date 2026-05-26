@@ -4,20 +4,29 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[margin=2.5cm]{geometry}
-\usepackage[english,magyar]{babel}
+\usepackage[english, magyar]{babel}
 \usepackage{amsmath}
 \usepackage[pdftex,unicode,raiselinks,colorlinks]{hyperref}
 \usepackage{enumitem}
 \usepackage{multicol}
 \usepackage{setspace}
 \usepackage{subcaption}
+\usepackage{caption}
+\DeclareCaptionLabelFormat{hungarianfigure}{#2.~ábra}
+\captionsetup[figure]{
+    labelformat=hungarianfigure,
+    labelsep=period
+}
 \usepackage{float}
-\usepackage{csquotes}
-\usepackage{biblatex}
+\usepackage[autostyle=true]{csquotes}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage[backend=biber,style=ieee,sorting=none]{biblatex}
 \usepackage{graphicx}
 \usepackage{minted}
 \usepackage{tikz}
+\usepackage{wrapfig}
 \usetikzlibrary{positioning, arrows.meta}
+
 
 \addbibresource{hivatkozasok.bib}
 
@@ -32,7 +41,7 @@
         \centering
 
         {\Huge\bfseries
-        Parkinson-kóros betegek rehabilitációját támogató mobilalkalmazás fejlesztése
+        Mozgásszervi rehabilitációt támogató, szenzoradatokat feldolgozó keresztplatformos alkalmazás fejlesztése
         \par}
 
         \vspace{1.2cm}
@@ -79,6 +88,7 @@
     \input{chapters/03.Munkafolyamat}
     \input{chapters/03.1Attekintes}
     \input{chapters/03.2.Alkalmazasarchitektura}
+    \newpage
     \input{chapters/04.Felhasznaloi felulet}
     \input{chapters/05.Bluetooth}
     \input{chapters/06.Kameraesvideo}

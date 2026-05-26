@@ -54,7 +54,7 @@ fun SavedSessionsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Saved Sessions") },
+                title = { Text("Mentett Munkamenetek") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")

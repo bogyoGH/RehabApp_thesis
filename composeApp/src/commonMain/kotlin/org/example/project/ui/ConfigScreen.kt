@@ -50,7 +50,7 @@ fun ConfigScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Session Configuration", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+        Text("Munkamenet létrehozása", style = MaterialTheme.typography.headlineMedium, color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
 
         // --- 1. BLOKK: BLUETOOTH WIDGET ---
@@ -90,7 +90,7 @@ fun ConfigScreen(
         OutlinedTextField(
             value = patientId,
             onValueChange = onPatientIdChange,
-            label = { Text("Patient ID") },
+            label = { Text("Felhasználónév") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -98,7 +98,7 @@ fun ConfigScreen(
 
 
         // --- 2. BLOKK: STANDARD REHAB SESSION ---
-        Text("Standard Rehab Routine", style = MaterialTheme.typography.titleMedium, color = Color(0xFF4CAF50))
+        Text("Standard Feladatsor", style = MaterialTheme.typography.titleMedium, color = Color(0xFF4CAF50))
         Card(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
@@ -138,7 +138,7 @@ fun ConfigScreen(
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("START REHAB SESSION", fontWeight = FontWeight.Bold)
+                    Text("INDÍTÁS", fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -148,7 +148,7 @@ fun ConfigScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // --- 3. BLOKK: CUSTOM SESSION BUILDER ---
-        Text("Custom Session Builder", style = MaterialTheme.typography.titleMedium, color = Color(0xFF9C27B0))
+        Text("Egyéni Feladatsor", style = MaterialTheme.typography.titleMedium, color = Color(0xFF9C27B0))
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -197,7 +197,7 @@ fun ConfigScreen(
                 },
                 enabled = selectedTaskType != null
             ) {
-                Text("Add")
+                Text("Hozzáadás")
             }
         }
 
@@ -231,7 +231,7 @@ fun ConfigScreen(
                 enabled = selectedTasks.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
             ) {
-                Text("CLEAR SESSION", fontWeight = FontWeight.Bold)
+                Text("MUNKAMENET TÖRLÉSE", fontWeight = FontWeight.Bold)
             }
 
             Button(
@@ -240,7 +240,7 @@ fun ConfigScreen(
                 enabled = selectedTasks.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
             ) {
-                Text("START SESSION", fontWeight = FontWeight.Bold)
+                Text("INDÍTÁS", fontWeight = FontWeight.Bold)
             }
         }
 
@@ -250,7 +250,7 @@ fun ConfigScreen(
             onClick = onOpenSavedSessions,
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
-            Text("SAVED SESSIONS")
+            Text("MENTETT MUNKAMENET")
         }
 
         Spacer(modifier = Modifier.height(32.dp)) // Extra hely a görgetés végén

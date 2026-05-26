@@ -1,7 +1,10 @@
 package org.example.project
 
+import kotlinx.datetime.Instant
+import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import kotlin.time.Clock
 
 object MockDataGenerator {
     // Egy belső számláló, ami az idő múlását szimulálja, így hullámokat (lépéseket) tudunk generálni
@@ -14,10 +17,11 @@ object MockDataGenerator {
         tick++
 
         val nameLower = taskName.lowercase()
-        val isRest = nameLower.contains("rest") || nameLower.contains("pihenő")
+        val isRest = nameLower.contains("rest") || nameLower.contains("pihenő") || nameLower.contains("állás") && !nameLower.contains("tandem")
         val isTandem = nameLower.contains("tandem")
         val isMarching = nameLower.contains("march") || nameLower.contains("helyben")
         val isToeWalking = nameLower.contains("toe") || nameLower.contains("lábujj")
+        val isHeelWalking = nameLower.contains("heel") || nameLower.contains("sarkon")
 
         var ch0 = 0
         var ch1 = 0
@@ -28,95 +32,99 @@ object MockDataGenerator {
 
         when {
             isRest -> {
-                // NYUGALOM: Nagyon stabil nyomás (enyhén a sarkon), apróbb Parkinsonos "mikro-remegés" a gyorsulásban
-                ch0 = 200 + Random.nextInt(-5, 5)
-                ch1 = 200 + Random.nextInt(-5, 5)
-                ch2 = 450 + Random.nextInt(-10, 10)
-                accelX = 512 + Random.nextInt(-15, 15)
-                accelY = 512 + Random.nextInt(-15, 15)
-                accelZ = 512 + Random.nextInt(-5, 5)
-            }
+                // NYUGALOM: A sarok (ch2) hordozza a súly nagy részét, a belső talp (ch0) közepeset, a külső (ch1) alig.
+                val swayX = sin(tick * 0.05)
+                val swayY = cos(tick * 0.03)
 
-            isTandem -> {
-                // EGYENSÚLYOZÁS: A súlypont vándorol előre-hátra (szinusz hullám), nagyobb dőlések az X/Y tengelyen
-                val sway = (sin(tick * 0.5) * 100).toInt()
-                ch0 = 300 + sway
-                ch1 = 300 - sway
-                ch2 = 400 + (sway / 2)
-
-                accelX = 512 + (sway / 3) + Random.nextInt(-20, 20)
-                accelY = 512 + Random.nextInt(-30, 30)
-                accelZ = 512 + Random.nextInt(-10, 10)
+                ch0 = (400 + swayY * 100 + swayX * 50).toInt() + Random.nextInt(-10, 10) // Sárgás lesz
+                ch1 = (200 + swayY * 50 - swayX * 30).toInt() + Random.nextInt(-10, 10)  // Zöldes lesz
+                ch2 = (700 - swayY * 150).toInt() + Random.nextInt(-15, 15)              // Pirosas lesz
             }
 
             isToeWalking -> {
-                // LÁBUJJHEGY: A súly szinte csak az előtalpon van (ch0, ch1).
-                val stepPhase = sin(tick.toDouble())
-                val isStep = stepPhase > 0 // Amikor épp "leér" a lábujjhegy
+                // LÁBUJJHEGY: A belső talppárna (ch0) viszi a fő terhet, a külső (ch1) kevesebbet, sarok (ch2) levegőben.
+                val stepCycle = sin(tick * 0.2)
 
-                ch0 = if (isStep) 700 + Random.nextInt(-50, 50) else 50
-                ch1 = if (isStep) 700 + Random.nextInt(-50, 50) else 50
-                ch2 = 20 + Random.nextInt(-10, 10) // A sarok alig ér a földhöz
+                ch0 = (600 + stepCycle * 350).toInt().coerceAtLeast(50) // Eléri a 950-et (Piros)
+                ch1 = (300 + stepCycle * 150).toInt().coerceAtLeast(50) // Eléri a 450-et (Zöld/Sárga)
+                ch2 = Random.nextInt(0, 30) // Fekete/Sötétzöld
 
-                // Időnként egy véletlenszerű lefagyás (FoG) szimulálása (gyors remegés, nincs lépés)
-                if (Random.nextInt(100) < 5) {
-                    accelX = 512 + Random.nextInt(-50, 50)
-                    accelY = 512 + Random.nextInt(-50, 50)
-                } else {
-                    accelX = 512 + Random.nextInt(-20, 20)
-                    accelY = 512 + Random.nextInt(-20, 20)
-                }
+                accelZ = 512 + (stepCycle * 100).toInt()
+            }
 
-                // Lépéskor a Z gyorsulás megugrik
-                accelZ = if (isStep) 650 + Random.nextInt(-20, 20) else 512 + Random.nextInt(-10, 10)
+            isHeelWalking -> {
+                // SARKON JÁRÁS: Extrém sarokterhelés, előtalp a levegőben.
+                val stepCycle = sin(tick * 0.2)
+
+                ch0 = Random.nextInt(0, 40) // Sötétzöld
+                ch1 = Random.nextInt(0, 20) // Sötétzöld
+                ch2 = (600 + stepCycle * 350).toInt().coerceAtLeast(50) // Eléri a 950-et (Piros)
+
+                accelZ = 512 + (stepCycle * 150).toInt()
+            }
+
+            isTandem -> {
+                // TANDEM ÁLLÁS: Erős egyensúlyozás aszimmetriával
+                val wobble = sin(tick * 0.4) * cos(tick * 0.15)
+
+                ch0 = (750 + wobble * 200).toInt() // Nagyon magas (Piros)
+                ch1 = (400 - wobble * 100).toInt() // Közepes (Sárga)
+                ch2 = (550 + sin(tick * 0.1) * 150).toInt() // Közepes-magas (Narancs)
             }
 
             isMarching -> {
-                val cycle = tick % 50
-
-                when {
-                    cycle in 0..5 -> { // 1. Heel Strike (Sarokleütés)
-                        ch0 = Random.nextInt(0, 50)
-                        ch1 = Random.nextInt(0, 50)
-                        ch2 = 800 + Random.nextInt(-50, 50) // Magas saroknyomás
-                        accelZ = 700 + Random.nextInt(-20, 20) // Ütődés a talajhoz
+                // HELYBEN JÁRÁS: Jól elkülönülő fázisok, csökkentett ch1 értékkel, hogy ne legyen minden piros!
+                val cycle = tick % 40
+                when (cycle) {
+                    in 0..9 -> { // 1. Sarokleütés: ch2 piros
+                        ch0 = Random.nextInt(30, 60)
+                        ch1 = Random.nextInt(10, 30)
+                        ch2 = 950 + Random.nextInt(-30, 30)
+                        accelZ = 800
                     }
-
-                    cycle in 6..25 -> { // 2. Flat foot (Gördülés, teljes talp lenn)
-                        ch0 = 400 + Random.nextInt(-30, 30)
-                        ch1 = 400 + Random.nextInt(-30, 30)
-                        ch2 = 400 + Random.nextInt(-30, 30)
-                        accelZ = 512 + Random.nextInt(-10, 10) // Nincs nagy függőleges gyorsulás
+                    in 10..19 -> { // 2. Teljes talp: közepes terhelések
+                        ch0 = 450 + Random.nextInt(-30, 30)
+                        ch1 = 250 + Random.nextInt(-30, 30)
+                        ch2 = 500 + Random.nextInt(-30, 30)
+                        accelZ = 512
                     }
-
-                    cycle in 26..35 -> { // 3. Toe off (Elrugaszkodás lábujjhegyről)
-                        ch0 = 700 + Random.nextInt(-50, 50)
-                        ch1 = 700 + Random.nextInt(-50, 50)
-                        ch2 = Random.nextInt(0, 50) // Sarok már a levegőben
-                        accelZ = 600 + Random.nextInt(-20, 20) // Elrugaszkodás gyorsulása
+                    in 20..29 -> { // 3. Elrugaszkodás: ch0 piros, ch1 csak sárgászöld!
+                        ch0 = 850 + Random.nextInt(-30, 30)
+                        ch1 = 350 + Random.nextInt(-30, 30)
+                        ch2 = Random.nextInt(10, 40)
+                        accelZ = 300
                     }
-
-                    else -> { // 4. Swing phase (Láb a levegőben)
+                    else -> { // 4. Lengési fázis: minden zöld
                         ch0 = Random.nextInt(0, 20)
                         ch1 = Random.nextInt(0, 20)
                         ch2 = Random.nextInt(0, 20)
-                        accelZ = 400 + Random.nextInt(-20, 20) // Láb emelése (negatív G irány)
+                        accelZ = 450
                     }
                 }
-                accelX = 512 + (sin(tick * 0.1) * 50).toInt() // Oldalirányú dőlés járás közben
-                accelY = 512 + Random.nextInt(-20, 20)
+            }
+
+            else -> {
+                ch0 = 600 + Random.nextInt(-50, 50)
+                ch1 = 300 + Random.nextInt(-50, 50)
+                ch2 = 800 + Random.nextInt(-50, 50)
             }
         }
 
-            return SensoriaData(
-                // A coerceIn biztosítja, hogy az értékek ne lépjék túl a Sensoria 10-bites (0-1023) hardveres limitjét
-                ch0 = ch0.coerceIn(0, 1023),
-                ch1 = ch1.coerceIn(0, 1023),
-                ch2 = ch2.coerceIn(0, 1023),
-                accelX = accelX.coerceIn(0, 1023),
-                accelY = accelY.coerceIn(0, 1023),
-                accelZ = accelZ.coerceIn(0, 1023),
-                taskName = taskName
-            )
-        }
+        // Alapzaj hozzáadása
+        if (accelX == 512) accelX = 512 + Random.nextInt(-20, 20)
+        if (accelY == 512) accelY = 512 + Random.nextInt(-20, 20)
+        if (accelZ == 512) accelZ = 512 + Random.nextInt(-20, 20)
+
+        val baseTime = 1778224500000L
+
+        return SensoriaData(
+            ch0 = ch0.coerceIn(0, 1023),
+            ch1 = ch1.coerceIn(0, 1023),
+            ch2 = ch2.coerceIn(0, 1023),
+            accelX = accelX.coerceIn(0, 1023),
+            accelY = accelY.coerceIn(0, 1023),
+            accelZ = accelZ.coerceIn(0, 1023),
+            timestamp = baseTime + (tick * 50L)
+        )
     }
+}

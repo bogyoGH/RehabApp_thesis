@@ -187,7 +187,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(0.8f).height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
             ) {
-                Text("STOP SESSION", fontWeight = FontWeight.Bold)
+                Text("LEÁLLÍTÁS", fontWeight = FontWeight.Bold)
             }
         } // 3. Blokk vége
 
