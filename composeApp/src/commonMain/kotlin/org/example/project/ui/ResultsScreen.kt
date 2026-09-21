@@ -2,6 +2,7 @@ package org.example.project.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,14 +12,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.example.project.*
-import kotlin.math.sqrt
+import kotlin.math.pow
+import org.example.project.analysis.FullSessionResult
+import org.example.project.analysis.DynamicAnalysisResult
+import org.example.project.analysis.StaticAnalysisResult
+import org.example.project.data.SensoriaData
+import org.example.project.data.RehabTaskType
 
 @Composable
 fun ResultsScreen(
@@ -73,7 +83,8 @@ fun ResultsScreen(
 
         // 4. Ritmus-vonal (Vonaldiagram)
         Text("Járásritmus (Lépésközök)", style = MaterialTheme.typography.titleMedium, color = Color.LightGray)
-        RhythmLineChart(result.rawTaskData[RehabTaskType.MARCHING_IN_PLACE.displayName] ?: emptyList())
+        // JAVÍTVA: Az emptyList<SensoriaData>() megmondja a fordítónak a pontos típust.
+        RhythmLineChart(result.rawTaskData[RehabTaskType.MARCHING_IN_PLACE.displayName] ?: emptyList<SensoriaData>())
 
         Spacer(modifier = Modifier.height(32.dp))
         HorizontalDivider(color = Color.DarkGray, thickness = 1.dp)
@@ -162,38 +173,26 @@ fun InfoCard(modifier: Modifier, title: String, value: String, color: Color) {
 fun FootHeatmap(data: List<SensoriaData>) {
     if (data.isEmpty()) return
 
-    // 1. Kiszűrjük azokat a pillanatokat, amikor a beteg felemelte a lábát (levegőben volt).
-    // Csak a tényleges "talajfogást" akarjuk átlagolni!
     val activeData = data.filter { (it.ch0 + it.ch1 + it.ch2) > 100 }
-
-    // Ha valamiért nem volt aktív adat, biztonságból használjuk az eredetit, hogy ne fagyjon le
     val validData = if (activeData.isNotEmpty()) activeData else data
 
-    // 2. Kiszámoljuk az aktív fázisok átlagát
     val avgCh0 = validData.map { it.ch0 }.average().toFloat()
     val avgCh1 = validData.map { it.ch1 }.average().toFloat()
     val avgCh2 = validData.map { it.ch2 }.average().toFloat()
-
-    // 3. Fix 1023-as hardveres maximumhoz viszonyítunk.
-    // Így egy közepes terhelés szépen sárga marad, és csak a durva aszimmetria lesz piros.
     val maxPressure = 1023f
 
     Canvas(modifier = Modifier.size(200.dp).background(Color.Transparent)) {
-        // ch0 - Előtalp belső (Nagylábujj alatti párna)
+        drawTrapezoidShape(size)
         drawCircle(
             color = getHeatmapColor(avgCh0.toInt(), maxPressure),
             radius = 45f,
             center = Offset(size.width * 0.35f, size.height * 0.25f)
         )
-
-        // ch1 - Előtalp külső (Kisujj alatti párna)
         drawCircle(
             color = getHeatmapColor(avgCh1.toInt(), maxPressure),
             radius = 45f,
             center = Offset(size.width * 0.65f, size.height * 0.25f)
         )
-
-        // ch2 - Sarok
         drawCircle(
             color = getHeatmapColor(avgCh2.toInt(), maxPressure),
             radius = 55f,
@@ -201,12 +200,25 @@ fun FootHeatmap(data: List<SensoriaData>) {
         )
     }
 }
+
 fun getHeatmapColor(rawPressure: Int, maxInSession: Float = 1023f): Color {
     val safetyMax = if (maxInSession <= 0f) 1023f else maxInSession
     val normalized = (rawPressure.toFloat() / safetyMax).coerceIn(0f, 1f)
-    val enhanced = kotlin.math.sqrt(normalized) // Kontrasztkiemelés
-    val hue = 120f * (1f - enhanced) // 120 = Zöld, 0 = Piros
+    val enhanced = kotlin.math.sqrt(normalized)
+    val hue = 120f * (1f - enhanced)
     return Color.hsv(hue = hue, saturation = 1f, value = 1f)
+}
+
+fun DrawScope.drawTrapezoidShape(size: Size) {
+    val path = Path().apply {
+        moveTo(size.width * 0.1f, size.height * 0.1f)
+        lineTo(size.width * 0.9f, size.height * 0.1f)
+        lineTo(size.width * 0.7f, size.height * 0.95f)
+        lineTo(size.width * 0.3f, size.height * 0.95f)
+        close()
+    }
+    drawPath(path = path, color = Color.LightGray, style = Stroke(width = 3f))
+    drawPath(path = path, color = Color.LightGray, style = Stroke(width = 3f))
 }
 
 @Composable
@@ -216,61 +228,111 @@ fun SwayScatterPlot(data: List<SensoriaData>) {
         val cy = size.height / 2
         val maxRadius = size.width / 2
 
-        // Céltábla (Háttér) kirajzolása
-        drawCircle(Color.DarkGray.copy(alpha = 0.4f), style = Stroke(2f), radius = maxRadius)
-        drawCircle(Color.DarkGray.copy(alpha = 0.4f), style = Stroke(2f), radius = maxRadius * 0.5f)
-        drawLine(Color.DarkGray.copy(alpha = 0.3f), start = Offset(cx, 0f), end = Offset(cx, size.height))
-        drawLine(Color.DarkGray.copy(alpha = 0.3f), start = Offset(0f, cy), end = Offset(size.width, cy))
+        drawCircle(Color.White.copy(alpha = 1.0f), style = Stroke(3f), radius = maxRadius)
+        drawCircle(Color.White.copy(alpha = 1.0f), style = Stroke(3f), radius = maxRadius * 0.5f)
+        drawLine(Color.White.copy(alpha = 1.0f), start = Offset(cx, 0f), end = Offset(cx, size.height))
+        drawLine(Color.White.copy(alpha = 1.0f), start = Offset(0f, cy), end = Offset(size.width, cy))
 
-        // Csak az utolsó 300 pontot rajzoljuk, hogy ne legyen egy hatalmas paca az egész
-        data.takeLast(300).forEach { point ->
+        val validPoints = data.mapNotNull { point ->
             val total = (point.ch0 + point.ch1 + point.ch2).toFloat()
-
-            // Csak akkor rajzolunk pontot, ha a beteg tényleg ráállt a zoknira (nem a levegőben lóbálja)
             if (total > 10f) {
                 val frontTotal = (point.ch0 + point.ch1).toFloat()
-
-                // X tengely: Bal (ch0) és Jobb (ch1) egyensúly. Értéke: -1.0 és +1.0 között
                 val rawXRatio = if (frontTotal > 0) (point.ch1 - point.ch0) / frontTotal else 0f
-
-                // Y tengely: Sarok (ch2) és Előtalp (frontTotal) egyensúly. Értéke: -1.0 és +1.0 között
                 val rawYRatio = (point.ch2 - frontTotal) / total
+                Pair(rawXRatio, rawYRatio)
+            } else null
+        }
 
-                // Vektorhossz számítása (Pitagorasz-tétel) a kilógás megakadályozására
-                val magnitude = kotlin.math.sqrt((rawXRatio * rawXRatio) + (rawYRatio * rawYRatio))
+        if (validPoints.isEmpty()) return@Canvas
 
-                // Ha a pont kilógna a körből (magnitude > 1), visszaskálázzuk pontosan 1-re!
-                val scale = if (magnitude > 1f) 1f / magnitude else 1f
+        val avgX = validPoints.map { it.first }.average().toFloat()
+        val avgY = validPoints.map { it.second }.average().toFloat()
+        val zoomFactor = 2.5f
 
-                val finalXRatio = rawXRatio * scale
-                val finalYRatio = rawYRatio * scale
-
-                // Kiszámoljuk a végső koordinátákat a 0.85-ös szorzóval (így hagyunk egy kis belső margót is)
-                val x = cx + (finalXRatio * maxRadius * 0.85f)
-                val y = cy + (finalYRatio * maxRadius * 0.85f)
-
-                // Pont kirajzolása (áttetsző kékkel, hogy a sűrűsödés szépen látszódjon)
-                drawCircle(Color(0xFF64B5F6), radius = 4f, center = Offset(x, y), alpha = 0.6f)
-            }
+        validPoints.forEach { (rawX, rawY) ->
+            val centeredX = (rawX - avgX) * zoomFactor
+            val centeredY = (rawY - avgY) * zoomFactor
+            val magnitude = kotlin.math.sqrt((centeredX * centeredX) + (centeredY * centeredY))
+            val scale = if (magnitude > 1f) 1f / magnitude else 1f
+            val finalXRatio = centeredX * scale
+            val finalYRatio = centeredY * scale
+            val x = cx + (finalXRatio * maxRadius * 0.85f)
+            val y = cy + (finalYRatio * maxRadius * 0.85f)
+            drawCircle(Color(0xFF64B5F6), radius = 4f, center = Offset(x, y), alpha = 0.6f)
         }
     }
 }
+
 @Composable
-fun RhythmLineChart(data: List<SensoriaData>) {
-    Canvas(modifier = Modifier.fillMaxWidth().height(150.dp).padding(16.dp)) {
-        val zAccels = data.map { it.accelZ.toFloat() }.takeLast(100)
-        if (zAccels.isEmpty()) return@Canvas
+fun RhythmLineChart(
+    data: List<SensoriaData>,
+    sampleRateMs: Long = 50L
+) {
+    if (data.isEmpty()) return
 
-        val maxZ = 1024f
-        val stepX = size.width / zAccels.size
+    val scrollState = rememberScrollState()
+    val textMeasurer = rememberTextMeasurer()
 
-        for (i in 0 until zAccels.size - 1) {
+    val magnitudes = data.map {
+        kotlin.math.sqrt(it.accelX.toDouble().pow(2) + it.accelY.toDouble().pow(2) + it.accelZ.toDouble().pow(2)).toFloat()
+    }
+
+    val minVal = magnitudes.minOrNull() ?: 0f
+    val maxVal = magnitudes.maxOrNull() ?: 1024f
+    val range = (maxVal - minVal).coerceAtLeast(1f)
+    val pixelsPerPoint = 5.dp
+    val chartWidth = pixelsPerPoint * magnitudes.size.coerceAtLeast(1)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp)
+            .padding(16.dp)
+            .horizontalScroll(scrollState)
+    ) {
+        Canvas(
+            modifier = Modifier
+                .width(chartWidth)
+                .fillMaxHeight()
+        ) {
+            val chartHeight = size.height - 40.dp.toPx()
+            val stepX = size.width / magnitudes.size.coerceAtLeast(1).toFloat()
+            val path = Path()
+
+            magnitudes.forEachIndexed { i, mag ->
+                val x = i * stepX
+                val y = chartHeight - ((mag - minVal) / range) * chartHeight
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+
+            drawPath(path, Color(0xFF64B5F6), style = Stroke(width = 2.dp.toPx()))
+
+            val axisY = chartHeight + 10.dp.toPx()
             drawLine(
-                color = Color(0xFF4CAF50),
-                start = Offset(i * stepX, size.height - (zAccels[i] / maxZ * size.height)),
-                end = Offset((i + 1) * stepX, size.height - (zAccels[i+1] / maxZ * size.height)),
-                strokeWidth = 3f
+                color = Color.LightGray,
+                start = Offset(0f, axisY),
+                end = Offset(size.width, axisY),
+                strokeWidth = 2f
             )
+
+            val pointsPerSecond = (1000 / sampleRateMs).toInt()
+
+            for (i in 0 until magnitudes.size step pointsPerSecond) {
+                val x = i * stepX
+                drawLine(
+                    color = Color.Gray,
+                    start = Offset(x, axisY - 10f),
+                    end = Offset(x, axisY + 10f),
+                    strokeWidth = 2f
+                )
+                val elapsedSeconds = (i * sampleRateMs) / 1000
+                drawText(
+                    textMeasurer = textMeasurer,
+                    text = "${elapsedSeconds}s",
+                    topLeft = Offset(x - 15f, axisY + 15f),
+                    style = TextStyle(color = Color.Gray, fontSize = 12.sp)
+                )
+            }
         }
     }
 }

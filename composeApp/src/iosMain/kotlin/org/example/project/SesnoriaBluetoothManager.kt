@@ -1,62 +1,48 @@
-package org.example.project
+package org.example.project.bluetooth // A te csomagneved
 
-import com.benasher44.uuid.uuidFrom
-import com.juul.kable.Characteristic
 import com.juul.kable.Scanner
 import com.juul.kable.peripheral
+import com.juul.kable.characteristicOf // ÚJ IMPORT: Ezt hozzá kell adni!
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.filterNotNull
+import org.example.project.data.SensoriaData
 
-actual class `SensoriaBluetoothManager` actual constructor(private val scope: CoroutineScope) {
+actual class SensoriaBluetoothManager actual constructor(private val scope: CoroutineScope) {
 
-    // A Python kódból származó Characteristic UUID
+    // Mindkét UUID-t stringként tároljuk
+    private val sensoriaServiceUuidString = "1cac0001-656e-696c-4b5f-6e6572726157" // Ezt az Android kódból vettük
     private val targetCharUuidString = "1cac0003-656e-696c-4b5f-6e6572726157"
 
-    // JAVÍTÁS 1: Bekerült az 'actual' kulcsszó
-    actual suspend fun connectAndListen(): Flow<SensoriaData> {
-        println("🔍 Keresés indítása iOS-en...")
+    actual suspend fun connectAndListen(
+        onStatusChange: (String) -> Unit
+    ): Flow<SensoriaData> {
+        onStatusChange("🔍 Keresés indítása iOS-en...")
 
         val scanner = Scanner()
-        // JAVÍTÁS 2: Csak névre szűrünk, mert iOS-en nincs publikus MAC cím
         val advertisement = scanner.advertisements.first { ad ->
             ad.name == "Sensoria-C1-D348"
         }
 
-        println("🟢 Zokni megtalálva! Csatlakozás...")
+        onStatusChange("🟢 Zokni megtalálva! Csatlakozás...")
         val sock = scope.peripheral(advertisement)
         sock.connect()
 
-        // 2. Dinamikusan megkeressük, hogy melyik Service-ben lakik a Characteristic
-        val targetCharUuid = uuidFrom(targetCharUuidString)
-        var sensorCharacteristic: Characteristic? = null
+        onStatusChange("📡 Csatlakoztatva! Adatok fogadása...")
 
-        val services = sock.services.filterNotNull().first() // Megvárjuk, amíg a lista elérhető lesz
-        for (service in services) {
-            for (char in service.characteristics) {
-                if (char.characteristicUuid == targetCharUuid) {
-                    sensorCharacteristic = char
-                    break
-                }
-            }
-            if (sensorCharacteristic != null) break
-        }
+        // JAVÍTÁS: Nincs több ciklus! Közvetlenül példányosítjuk a Kable-nek a csatornát.
+        val sensorCharacteristic = characteristicOf(
+            service = sensoriaServiceUuidString,
+            characteristic = targetCharUuidString
+        )
 
-        if (sensorCharacteristic == null) {
-            throw Exception("Nem találtam meg a megfelelő Bluetooth karakterisztikát a zoknin!")
-        }
-
-        println("📡 Csatlakoztatva! Adatok fogadása...")
-
-        // 3. Feliratkozunk az adatfolyamra és dekódoljuk a biteket
+        // Feliratkozunk és dekódolunk
         return sock.observe(sensorCharacteristic).mapNotNull { byteArray ->
-            if (byteArray.size < 20) return@mapNotNull null // Biztonsági ellenőrzés
+            if (byteArray.size < 20) return@mapNotNull null
 
             val reader = BitReader(byteArray)
 
-            // Fejléc adatok ugrása
             reader.readBits(4)  // msg_type
             reader.readBits(4)  // context
             reader.readBits(2)  // gs
@@ -65,22 +51,18 @@ actual class `SensoriaBluetoothManager` actual constructor(private val scope: Co
             reader.readBits(2)  // hz
             reader.readBits(24) // tick
 
-            // Nyomásadatok kiolvasása
             val ch0 = reader.readBits(10)
             val ch1 = reader.readBits(10)
             val ch2 = reader.readBits(10)
 
-            // Mágneses adatok ugrása
             reader.readBits(10) // mag_x
             reader.readBits(10) // mag_y
             reader.readBits(10) // mag_z
 
-            // Gyorsulásmérő adatok kiolvasása
             val accelX = reader.readBits(10)
             val accelY = reader.readBits(10)
             val accelZ = reader.readBits(10)
 
-            // SensoriaData példányosítása
             SensoriaData(
                 ch0 = ch0,
                 ch1 = ch1,
@@ -90,5 +72,10 @@ actual class `SensoriaBluetoothManager` actual constructor(private val scope: Co
                 accelZ = accelZ
             )
         }
+    }
+
+    actual suspend fun disconnect() {
+        // Stub, ahogy korábban is
+        println("🔌 iOS Bluetooth kapcsolat bontása (Stub)")
     }
 }

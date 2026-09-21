@@ -34,8 +34,10 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation("androidx.media3:media3-exoplayer:1.2.0")
             implementation("androidx.media3:media3-ui:1.2.0")
+            implementation("io.ktor:ktor-client-android:2.3.9")
         }
         iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:2.3.9")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -55,6 +57,10 @@ kotlin {
             implementation("androidx.camera:camera-camera2:1.3.1")
             implementation("androidx.camera:camera-lifecycle:1.3.1")
             implementation("androidx.camera:camera-view:1.3.1")
+            val supabaseVersion = "3.0.0"
+            implementation("io.github.jan-tennert.supabase:postgrest-kt:$supabaseVersion")
+            implementation("io.github.jan-tennert.supabase:storage-kt:$supabaseVersion")
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

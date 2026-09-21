@@ -5,9 +5,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import org.example.project.SessionViewModel
-import org.example.project.ScheduledTask
-import org.example.project.FullSessionResult
+import org.example.project.viewmodel.SessionViewModel
+import org.example.project.data.ScheduledTask
+import org.example.project.analysis.FullSessionResult
 
 sealed class Screen {
     object Config : Screen()

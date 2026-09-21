@@ -5,6 +5,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 import kotlin.time.Clock
+import org.example.project.data.SensoriaData
 
 object MockDataGenerator {
     // Egy belső számláló, ami az idő múlását szimulálja, így hullámokat (lépéseket) tudunk generálni

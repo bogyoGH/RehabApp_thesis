@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import org.example.project.SessionViewModel
-import org.example.project.ViewPreference
+import org.example.project.viewmodel.SessionViewModel
+import org.example.project.viewmodel.ViewPreference
 
 @Composable
 fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {

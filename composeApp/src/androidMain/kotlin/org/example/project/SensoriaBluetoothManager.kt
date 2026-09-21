@@ -1,4 +1,4 @@
-package org.example.project
+package org.example.project.bluetooth
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -25,6 +25,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.util.UUID
+import org.example.project.AppContextHolder
+import org.example.project.data.SensoriaData
 
 actual class SensoriaBluetoothManager actual constructor(
     private val scope: CoroutineScope
