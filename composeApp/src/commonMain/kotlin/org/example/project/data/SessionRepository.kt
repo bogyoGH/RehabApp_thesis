@@ -42,6 +42,23 @@ object SessionRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun loadLocalSession(fileName: String): Result<SessionExport> = withContext(Dispatchers.IO) {
+        try {
+            // 1. Fájl beolvasása a helyi tárhelyről (FileStorage)
+            val jsonString = FileStorage.readText(fileName)
+
+            if (jsonString != null) {
+                // 2. Deszerializálás JSON-ből Kotlin objektummá
+                val sessionExport = Json { ignoreUnknownKeys = true }.decodeFromString<SessionExport>(jsonString)
+                Result.success(sessionExport)
+            } else {
+                Result.failure(Exception("A fájl nem található a helyi tárhelyen."))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 
 suspend fun loadSession(fileName: String): Result<SessionExport> = withContext(Dispatchers.IO) {

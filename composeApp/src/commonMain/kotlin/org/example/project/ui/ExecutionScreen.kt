@@ -23,7 +23,7 @@ import org.example.project.viewmodel.ViewPreference
 fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
     val scrollState = rememberScrollState()
 
-    if (viewModel.showViewModeDialog) {
+    if (viewModel.uiState.showViewModeDialog) {
         AlertDialog(
             onDismissRequest = { /* Ne lehessen bezárni döntés nélkül */ },
             title = { Text("Nézeti beállítások") },
@@ -33,7 +33,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     Button(
                         onClick = {
                             viewModel.confirmViewModeAndStart(ViewPreference.SELF)
-                            viewModel.showViewModeDialog = false
+                            viewModel.dismissViewModeDialog()
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ) { Text("Csak önmagamat") }
@@ -41,7 +41,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     Button(
                         onClick = {
                             viewModel.confirmViewModeAndStart(ViewPreference.VIDEO)
-                            viewModel.showViewModeDialog = false
+                            viewModel.dismissViewModeDialog()
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ) { Text("Csak a feladatot") }
@@ -49,7 +49,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     Button(
                         onClick = {
                             viewModel.confirmViewModeAndStart(ViewPreference.BOTH)
-                            viewModel.showViewModeDialog = false
+                            viewModel.dismissViewModeDialog()
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                     ) { Text("Mindkettőt") }
@@ -67,7 +67,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
     ) {
         // --- 1. BLOKK: FELADAT CÍME ---
         Text(
-            text = viewModel.currentTaskName,
+            text = viewModel.uiState.currentTaskName,
             style = MaterialTheme.typography.headlineMedium,
             color = Color(0xFF64B5F6),
             fontWeight = FontWeight.Bold,
@@ -81,8 +81,8 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 .fillMaxWidth()
                 .height(400.dp) // Fix magasság kell a Row-nak, ezt állítsd be ízlés szerint (pl. 500.dp)
         ) {
-            val pref = viewModel.viewPreference
-            val isPreview = viewModel.isPreviewPhase
+            val pref = viewModel.uiState.viewPreference
+            val isPreview = viewModel.uiState.isPreviewPhase
 
             // LOGIKA A BAL OLDALHOZ (VIDEÓ)
             if (pref == ViewPreference.BOTH || pref == ViewPreference.VIDEO || (pref == ViewPreference.SELF && isPreview)) {
@@ -93,8 +93,8 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                         .background(Color.Black)
                         .clipToBounds()
                 ) {
-                    key(viewModel.currentVideoName) {
-                        viewModel.currentVideoName?.let { videoName ->
+                    key(viewModel.uiState.currentVideoName) {
+                        viewModel.uiState.currentVideoName?.let { videoName ->
                             VideoPlayer(videoName = videoName, modifier = Modifier.fillMaxSize())
                         }
                     }
@@ -140,14 +140,14 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             // Instrukciók
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = viewModel.currentInstruction,
+                    text = viewModel.uiState.currentInstruction,
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
                     fontWeight = FontWeight.Medium
                 )
-                if (viewModel.currentFallback.isNotBlank()) {
+                if (viewModel.uiState.currentFallback.isNotBlank()) {
                     Text(
-                        text = viewModel.currentFallback,
+                        text = viewModel.uiState.currentFallback,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFFFFB74D)
                     )
@@ -157,21 +157,21 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             // Időzítő és Stabilitás
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = viewModel.timerText,
-                    fontSize = if (viewModel.isPreviewPhase) 48.sp else 80.sp,
+                    text = viewModel.uiState.timerText,
+                    fontSize = if (viewModel.uiState.isPreviewPhase) 48.sp else 80.sp,
                     fontWeight = FontWeight.Black,
-                    color = if (viewModel.isPreviewPhase) Color(0xFFFFB74D) else Color.White
+                    color = if (viewModel.uiState.isPreviewPhase) Color(0xFFFFB74D) else Color.White
                 )
 
-                if (!viewModel.isPreviewPhase) {
+                if (!viewModel.uiState.isPreviewPhase) {
                     Text(
-                        text = viewModel.stabilityScore,
+                        text = viewModel.uiState.stabilityScore,
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color.LightGray
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     LinearProgressIndicator(
-                        progress = viewModel.progressValue,
+                        progress = viewModel.uiState.progressValue,
                         modifier = Modifier.fillMaxWidth().height(12.dp),
                         color = Color(0xFF4CAF50),
                         trackColor = Color.DarkGray
@@ -191,8 +191,8 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             }
         } // 3. Blokk vége
 
-        LaunchedEffect(viewModel.sessionCompleted) {
-            if (viewModel.sessionCompleted) {
+        LaunchedEffect(viewModel.uiState.sessionCompleted) {
+            if (viewModel.uiState.sessionCompleted) {
                 delay(1000)
                 onStop()
             }

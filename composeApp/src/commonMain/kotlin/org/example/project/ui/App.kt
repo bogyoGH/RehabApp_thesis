@@ -33,12 +33,12 @@ fun App() {
         // ÚJ LOGIKA: Központi navigáció-figyelő
         // Bármikor, ha a ViewModel jelzi, hogy kész az elemzés (akár élő mérés, akár fájlbetöltés után),
         // ez az Effect lefut, és átnavigál az Eredmények képernyőre.
-        LaunchedEffect(viewModel.sessionCompleted) {
-            if (viewModel.sessionCompleted && viewModel.sessionResult != null) {
+        LaunchedEffect(viewModel.uiState.sessionCompleted) {
+            if (viewModel.uiState.sessionCompleted && viewModel.sessionResult != null) {
                 currentScreen = Screen.Results(viewModel.sessionResult!!)
                 // Fontos: visszaállítjuk false-ra!
                 // Így ha a felhasználó a Results képernyőről visszalép a Configra, nem ugrik azonnal vissza.
-                viewModel.sessionCompleted = false
+                viewModel.resetSessionState()
             }
         }
 
@@ -47,8 +47,8 @@ fun App() {
             when (val screen = currentScreen) {
 
                 is Screen.Config -> ConfigScreen(
-                    patientId = viewModel.patientId,
-                    onPatientIdChange = { viewModel.patientId = it },
+                    patientId = viewModel.uiState.patientId,
+                    onPatientIdChange = { viewModel.updatePatientId(it) },
                     selectedTasks = selectedTasks,
 
                     standardTasks = viewModel.standardRehabRoutine,
@@ -60,8 +60,8 @@ fun App() {
                         currentScreen = Screen.Execution
                     },
 
-                    isBluetoothEnabled = viewModel.isBluetoothEnabled,
-                    bluetoothStatus = viewModel.bluetoothStatus,
+                    isBluetoothEnabled = viewModel.uiState.isBluetoothEnabled,
+                    bluetoothStatus = viewModel.uiState.bluetoothStatus,
                     onToggleBluetooth = { isChecked -> viewModel.toggleBluetooth(isChecked) },
 
                     onStartCustom = {
@@ -95,11 +95,11 @@ fun App() {
                 is Screen.Results -> ResultsScreen(
                     result = screen.result,
                     onBackToMenu = {
-                        viewModel.sessionResult = null
+                        viewModel.resetSessionState()
                         currentScreen = Screen.Config
                     },
                     onGoToSavedSessions = {
-                        viewModel.sessionResult = null
+                        viewModel.resetSessionState()
                         currentScreen = Screen.SavedSessions
                     }
                 )
