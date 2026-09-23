@@ -1,10 +1,8 @@
 package org.example.project
 
-import kotlinx.datetime.Instant
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
-import kotlin.time.Clock
 import org.example.project.data.SensoriaData
 
 object MockDataGenerator {

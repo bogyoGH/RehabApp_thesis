@@ -27,12 +27,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.example.project.data.FileStorage
+import org.example.project.data.SessionRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +44,9 @@ fun SavedSessionsScreen(
     onOpenSession: (String) -> Unit // ÚJ: Ezt hívjuk meg, ha ráklikkelnek a megnyitásra
 ) {
     var files by remember { mutableStateOf(emptyList<String>()) }
+
+    val coroutineScope = rememberCoroutineScope()
+
 
     fun reloadFiles() {
         files = FileStorage.listFiles()
@@ -116,9 +122,14 @@ fun SavedSessionsScreen(
 
                                 // Törlés gomb
                                 IconButton(onClick = {
-                                    val isDeleted = FileStorage.deleteFile(fileName)
-                                    if (isDeleted) {
-                                        reloadFiles()
+                                    coroutineScope.launch {
+                                        // A teljes Hard Delete folyamat meghívása (Felhő + Helyi)
+                                        val result = SessionRepository.deleteSession(fileName)
+
+                                        // Ha a törlés sikeres volt (vagy offline módban helyileg törlődött), frissítjük a listát
+                                        if (result.isSuccess) {
+                                            reloadFiles()
+                                        }
                                     }
                                 }) {
                                     Icon(

@@ -17,5 +17,7 @@ data class SessionUiState(
     val dataPacketCount: Int = 0,
     val isPreviewPhase: Boolean = false,
     val viewPreference: ViewPreference = ViewPreference.BOTH,
-    val showViewModeDialog: Boolean = false
+    val showViewModeDialog: Boolean = false,
+    val isPaused: Boolean = false,
+    val showSaveDialog: Boolean = false
 )

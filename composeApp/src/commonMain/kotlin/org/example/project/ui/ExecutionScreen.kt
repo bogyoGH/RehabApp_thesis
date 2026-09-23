@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import org.example.project.viewmodel.SessionViewModel
 import org.example.project.viewmodel.ViewPreference
 
+
 @Composable
 fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
     val scrollState = rememberScrollState()
@@ -95,7 +96,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 ) {
                     key(viewModel.uiState.currentVideoName) {
                         viewModel.uiState.currentVideoName?.let { videoName ->
-                            VideoPlayer(videoName = videoName, modifier = Modifier.fillMaxSize())
+                            VideoPlayer(videoName = videoName, isPaused = viewModel.uiState.isPaused, modifier = Modifier.fillMaxSize())
                         }
                     }
                     if (isPreview) {
@@ -158,7 +159,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = viewModel.uiState.timerText,
-                    fontSize = if (viewModel.uiState.isPreviewPhase) 48.sp else 80.sp,
+                    fontSize = if (viewModel.uiState.isPreviewPhase) 32.sp else 80.sp,
                     fontWeight = FontWeight.Black,
                     color = if (viewModel.uiState.isPreviewPhase) Color(0xFFFFB74D) else Color.White
                 )
@@ -183,11 +184,28 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
 
             // Stop gomb
             Button(
-                onClick = onStop,
+                onClick = { viewModel.requestStop() },
                 modifier = Modifier.fillMaxWidth(0.8f).height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB71C1C))
             ) {
                 Text("LEÁLLÍTÁS", fontWeight = FontWeight.Bold)
+            }
+            if (viewModel.uiState.isRunning) {
+                if (viewModel.uiState.isPaused) {
+                    Button(
+                        onClick = { viewModel.resumeSession() },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("▶ Folytatás")
+                    }
+                } else {
+                    Button(
+                        onClick = { viewModel.pauseSession() },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("⏸ Szünet")
+                    }
+                }
             }
         } // 3. Blokk vége
 
@@ -197,5 +215,28 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 onStop()
             }
         }
-    } // <-- FŐ COLUMN VÉGE (Ide került a zárójel)
+        if (viewModel.uiState.showSaveDialog) {
+            AlertDialog(
+                onDismissRequest = { /* Üresen hagyjuk, hogy ne lehessen véletlenül mellékattintva bezárni */ },
+                title = { Text("Mérés befejeződött") },
+                text = { Text("Szeretné elmenteni és szinkronizálni az eredményeket, vagy elveti a mérést?") },
+                confirmButton = {
+                    Button(
+                        onClick = { viewModel.confirmSaveAndFinish() },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Zöld mentés gomb
+                    ) {
+                        Text("Mentés", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { viewModel.discardSession() },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Elvetés", fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
+    }
 }

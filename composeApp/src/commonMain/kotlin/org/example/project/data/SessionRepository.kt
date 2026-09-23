@@ -10,6 +10,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.example.project.dto.SessionExport
 import org.example.project.network.SupabaseManager
+import org.example.project.scheduleOfflineSync
 
 object SessionRepository {
     suspend fun saveSession(
@@ -21,7 +22,7 @@ object SessionRepository {
             val jsonString = Json { prettyPrint = true }.encodeToString(exportData)
             val fileName = "$sessionId.json"
 
-            // 1. Helyi mentés
+            // 1. Helyi mentés (ez hálózat nélkül is lefut)
             FileStorage.saveText(fileName, jsonString)
 
             // 2. Felhős mentés
@@ -31,18 +32,54 @@ object SessionRepository {
             }
 
             val dbEntity = SessionEntity(
-                sessionId = sessionId,
-                patientId = patientId,
+                session_id = sessionId,
+                patient_id = patientId,
                 json_file_path = fileName
             )
             SupabaseManager.supabaseClient.postgrest["sessions"].insert(dbEntity)
 
             Result.success(fileName)
         } catch (e: Exception) {
-            Result.failure(e)
+            e.printStackTrace()
+            println("SUPABASE HIBA: ${e.message}")
+
+            // 3. OFFLINE SZINKRONIZÁCIÓ BEÜTEMEZÉSE
+            scheduleOfflineSync()
+
+            // Mivel a helyi mentés (FileStorage) az 1. pontban már sikeresen lefutott,
+            // a folyamatot nem teljes kudarcként (failure) kezeljük, hanem jelezzük a felületnek,
+            // hogy az adatok biztonságban vannak a telefonon.
+            Result.success("Offline mentve (Szinkronizálásra vár)")
         }
     }
 
+    suspend fun deleteSession(fileName: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            // A fájlnévből (pl. "session_123_synced.json" vagy "session_123.json") kinyerjük a tiszta ID-t
+            val sessionId = fileName.replace("_synced.json", "").replace(".json", "")
+            val storageFileName = "$sessionId.json"
+
+            // 1. Törlés a Supabase Storage-ből (Bucket)
+            val bucket = SupabaseManager.supabaseClient.storage.from("raw_sessions")
+            bucket.delete(listOf(storageFileName))
+
+            SupabaseManager.supabaseClient.postgrest["sessions"].delete {
+                filter {
+                    eq("session_id", sessionId) // Ha a DB oszlop neve "session_id", így marad
+                }
+            }
+
+            // 3. Törlés a helyi tárhelyről
+            FileStorage.deleteFile(fileName)
+
+            Result.success(true)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Ha nincs net, a helyi fájlt akkor is töröljük, hogy a felületről eltűnjön
+            FileStorage.deleteFile(fileName)
+            Result.failure(e)
+        }
+    }
     suspend fun loadLocalSession(fileName: String): Result<SessionExport> = withContext(Dispatchers.IO) {
         try {
             // 1. Fájl beolvasása a helyi tárhelyről (FileStorage)
@@ -73,3 +110,5 @@ suspend fun loadSession(fileName: String): Result<SessionExport> = withContext(D
         Result.failure(e)
     }
 }
+
+

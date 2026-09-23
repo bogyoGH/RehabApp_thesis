@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SessionEntity(
-    val sessionId: String,
-    val patientId: String,
+    val session_id: String,
+    val patient_id: String,
     val json_file_path: String
 )

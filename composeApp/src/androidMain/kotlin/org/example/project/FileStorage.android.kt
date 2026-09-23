@@ -43,7 +43,7 @@ actual object FileStorage {
             ?: emptyList()
     }
 
-    actual fun deleteFile(fileName: String) : Boolean{
+    actual fun deleteFile(fileName: String): Boolean {
         val context = getContext() ?: return false
         val safeName = fileName.substringAfterLast('/')
         if (safeName.isBlank()) return false
@@ -54,5 +54,30 @@ actual object FileStorage {
         } else {
             false
         }
+    }
+
+    // Keresi azokat a .json fájlokat, amik még nincsenek szinkronizálva
+    fun getPendingUploads(): List<String> {
+        val context = getContext() ?: return emptyList()
+        val dir = context.filesDir
+        return dir.listFiles()
+            ?.asSequence()
+            ?.filter { it.isFile && it.extension == "json" && !it.name.endsWith("_synced.json") }
+            ?.map { it.name }
+            ?.toList()
+            ?: emptyList()
+    }
+
+    // A sikeres feltöltés után átnevezi a fájlt, így legközelebb már nem küldi fel
+    fun markAsUploaded(fileName: String): Boolean {
+        val context = getContext() ?: return false
+        val safeName = fileName.substringAfterLast('/')
+        val file = File(context.filesDir, safeName)
+
+        if (!file.exists()) return false
+
+        val newName = file.nameWithoutExtension + "_synced.json"
+        val newFile = File(context.filesDir, newName)
+        return file.renameTo(newFile)
     }
 }
