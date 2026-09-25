@@ -38,6 +38,8 @@ object SessionRepository {
             )
             SupabaseManager.supabaseClient.postgrest["sessions"].insert(dbEntity)
 
+            FileStorage.markAsUploaded(fileName)
+
             Result.success(fileName)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -57,15 +59,12 @@ object SessionRepository {
         try {
             // A fájlnévből (pl. "session_123_synced.json" vagy "session_123.json") kinyerjük a tiszta ID-t
             val sessionId = fileName.replace("_synced.json", "").replace(".json", "")
-            val storageFileName = "$sessionId.json"
 
-            // 1. Törlés a Supabase Storage-ből (Bucket)
-            val bucket = SupabaseManager.supabaseClient.storage.from("raw_sessions")
-            bucket.delete(listOf(storageFileName))
-
-            SupabaseManager.supabaseClient.postgrest["sessions"].delete {
+            SupabaseManager.supabaseClient.postgrest["sessions"].update(
+                mapOf("is_deleted" to true)
+            ) {
                 filter {
-                    eq("session_id", sessionId) // Ha a DB oszlop neve "session_id", így marad
+                    eq("session_id", sessionId)
                 }
             }
 

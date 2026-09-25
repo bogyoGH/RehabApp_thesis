@@ -57,7 +57,7 @@ actual object FileStorage {
     }
 
     // Keresi azokat a .json fájlokat, amik még nincsenek szinkronizálva
-    fun getPendingUploads(): List<String> {
+    actual fun getPendingUploads(): List<String> {
         val context = getContext() ?: return emptyList()
         val dir = context.filesDir
         return dir.listFiles()
@@ -69,7 +69,7 @@ actual object FileStorage {
     }
 
     // A sikeres feltöltés után átnevezi a fájlt, így legközelebb már nem küldi fel
-    fun markAsUploaded(fileName: String): Boolean {
+    actual fun markAsUploaded(fileName: String): Boolean {
         val context = getContext() ?: return false
         val safeName = fileName.substringAfterLast('/')
         val file = File(context.filesDir, safeName)
