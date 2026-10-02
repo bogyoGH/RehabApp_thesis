@@ -222,7 +222,10 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 text = { Text("Szeretné elmenteni és szinkronizálni az eredményeket, vagy elveti a mérést?") },
                 confirmButton = {
                     Button(
-                        onClick = { viewModel.confirmSaveAndFinish() },
+                        onClick = {
+                            println("AUTH_DEBUG: UI - Mentés gomb megnyomva az AlertDialog-ban!")
+                            viewModel.confirmSaveAndFinish()
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Zöld mentés gomb
                     ) {
                         Text("Mentés", fontWeight = FontWeight.Bold)

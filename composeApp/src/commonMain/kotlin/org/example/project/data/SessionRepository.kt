@@ -1,8 +1,7 @@
 package org.example.project.data
 
-import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
@@ -23,11 +22,14 @@ object SessionRepository {
             val fileName = "$sessionId.json"
 
             // 1. Helyi mentés (ez hálózat nélkül is lefut)
+
             FileStorage.saveText(fileName, jsonString)
 
             // 2. Felhős mentés
             val bucket = SupabaseManager.supabaseClient.storage.from("raw_sessions")
-            bucket.upload(path = fileName, data = jsonString.toByteArray()) {
+
+            // JAVÍTÁS: Ktor toByteArray() helyett a standard Kotlin encodeToByteArray() !
+            bucket.upload(path = fileName, data = jsonString.encodeToByteArray()) {
                 upsert = true
             }
 
@@ -36,7 +38,9 @@ object SessionRepository {
                 patient_id = patientId,
                 json_file_path = fileName
             )
-            SupabaseManager.supabaseClient.postgrest["sessions"].insert(dbEntity)
+
+            // JAVÍTÁS: postgrest["sessions"] helyett a from("sessions") használata
+            SupabaseManager.supabaseClient.from("sessions").insert(dbEntity)
 
             FileStorage.markAsUploaded(fileName)
 
@@ -48,44 +52,41 @@ object SessionRepository {
             // 3. OFFLINE SZINKRONIZÁCIÓ BEÜTEMEZÉSE
             scheduleOfflineSync()
 
-            // Mivel a helyi mentés (FileStorage) az 1. pontban már sikeresen lefutott,
-            // a folyamatot nem teljes kudarcként (failure) kezeljük, hanem jelezzük a felületnek,
-            // hogy az adatok biztonságban vannak a telefonon.
             Result.success("Offline mentve (Szinkronizálásra vár)")
+        } catch (e: Throwable) {
+            // JAVÍTÁS: Ez elkapja az olyan fatális hibákat is (pl. NoSuchMethodError), amik eddig némán kifagyasztották a mentést!
+            e.printStackTrace()
+            println("FATÁLIS HIBA A MENTÉSNÉL: ${e.message}")
+            Result.failure(Exception("Kritikus hiba: ${e.message}"))
         }
     }
 
     suspend fun deleteSession(fileName: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            // A fájlnévből (pl. "session_123_synced.json" vagy "session_123.json") kinyerjük a tiszta ID-t
             val sessionId = fileName.replace("_synced.json", "").replace(".json", "")
 
-            SupabaseManager.supabaseClient.postgrest["sessions"].update(
-                mapOf("is_deleted" to true)
-            ) {
+            // 1. Törlési (DELETE) parancs küldése a Supabase View-nak (a trigger fogja elkapni)
+            SupabaseManager.supabaseClient.from("sessions").delete {
                 filter {
                     eq("session_id", sessionId)
                 }
             }
 
-            // 3. Törlés a helyi tárhelyről
+            // 2. CSAK AKKOR töröljük a telefonról, ha a hálózati kérés sikeres volt!
             FileStorage.deleteFile(fileName)
-
             Result.success(true)
         } catch (e: Exception) {
             e.printStackTrace()
-            // Ha nincs net, a helyi fájlt akkor is töröljük, hogy a felületről eltűnjön
-            FileStorage.deleteFile(fileName)
+            // JAVÍTÁS: Innen kivettük a FileStorage törlést! Ha a felhős törlés elszáll,
+            // a fájl megmarad a telefonon, hogy később újra meg lehessen próbálni.
             Result.failure(e)
         }
     }
     suspend fun loadLocalSession(fileName: String): Result<SessionExport> = withContext(Dispatchers.IO) {
         try {
-            // 1. Fájl beolvasása a helyi tárhelyről (FileStorage)
             val jsonString = FileStorage.readText(fileName)
 
             if (jsonString != null) {
-                // 2. Deszerializálás JSON-ből Kotlin objektummá
                 val sessionExport = Json { ignoreUnknownKeys = true }.decodeFromString<SessionExport>(jsonString)
                 Result.success(sessionExport)
             } else {
@@ -109,5 +110,3 @@ suspend fun loadSession(fileName: String): Result<SessionExport> = withContext(D
         Result.failure(e)
     }
 }
-
-

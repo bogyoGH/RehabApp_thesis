@@ -5,6 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,15 +31,51 @@ fun ConfigScreen(
     isBluetoothEnabled: Boolean,
     bluetoothStatus: String,
     onToggleBluetooth: (Boolean) -> Unit,
-    onOpenSavedSessions: () -> Unit
+    onOpenSavedSessions: () -> Unit,
+    onOpenProfile: () -> Unit,
+    // Kijelentkezés esemény
+    onLogout: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            // FIX: Dinamikus padding helyett biztonságos, fix felső margó, hogy a gomb kattintható legyen!
+            .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Munkamenet", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+        // --- CÍMSOR ÉS KIJELENTKEZÉS GOMB ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Munkamenet", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+            Row {
+                IconButton(
+                    onClick = onOpenProfile,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profil",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        println("AUTH_DEBUG: Gombnyomás a ConfigScreen-en!")
+                        onLogout()
+                    },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = "Kijelentkezés",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         // --- 1. BLOKK: BLUETOOTH WIDGET ---
@@ -74,11 +112,18 @@ fun ConfigScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // --- FELHASZNÁLÓNÉV (LEZÁRVA) ---
         OutlinedTextField(
             value = patientId,
-            onValueChange = onPatientIdChange,
-            label = { Text("Felhasználónév (Azonosító)") },
-            modifier = Modifier.fillMaxWidth()
+            onValueChange = { /* Szándékosan üres, a felhasználó nem írhatja felül */ },
+            label = { Text("Felhasználónév (Automatikus)") },
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true, // Ettől a mező csak olvasható lesz
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Gray,
+                unfocusedBorderColor = Color.DarkGray,
+                disabledTextColor = Color.LightGray
+            )
         )
 
         Spacer(modifier = Modifier.height(24.dp))

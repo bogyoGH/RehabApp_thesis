@@ -21,7 +21,7 @@ class SessionSyncWorker(
             }
 
             for (fileName in pendingFiles) {
-                // Betöltjük a fájlt a neve alapján a meglévő függvényeddel
+                // Betöltjük a fájlt a neve alapján
                 val sessionResult = SessionRepository.loadLocalSession(fileName)
 
                 sessionResult.onSuccess { sessionExport ->
@@ -32,11 +32,17 @@ class SessionSyncWorker(
                         sessionExport
                     )
 
-                    uploadResult.onSuccess {
-                        // Siker esetén azonnal "_synced.json" lesz belőle
-                        FileStorage.markAsUploaded(fileName)
+                    uploadResult.onSuccess { message ->
+                        // JAVÍTÁS: Ellenőrizzük, hogy a Repository valóban feltöltötte-e, vagy csak visszaadta az offline fallback üzenetet!
+                        if (message.contains("Offline mentve")) {
+                            // A hálózat továbbra sem jó, később újra kell próbálni a szinkronizálást
+                            return Result.retry()
+                        } else {
+                            // A felhős mentés tényleg sikeres volt, jöhet a _synced utótag
+                            FileStorage.markAsUploaded(fileName)
+                        }
                     }.onFailure {
-                        // Ha a hálózat közben megint elment, újra ütemezzük
+                        // Ha valamilyen kritikus hiba miatt failure-t dob a repo
                         return Result.retry()
                     }
                 }
