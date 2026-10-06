@@ -1,142 +1,155 @@
 package org.example.project.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.example.project.data.FileStorage
-import org.example.project.data.SessionRepository
+import org.example.project.dto.SessionExport
+import org.example.project.network.SessionRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedSessionsScreen(
+    sessions: List<SessionExport>,
+    deletedSessions: List<SessionExport>, // ÚJ: Törölt mérések listája
+    onRefresh: () -> Unit,
     onBack: () -> Unit,
-    onOpenSession: (String) -> Unit // ÚJ: Ezt hívjuk meg, ha ráklikkelnek a megnyitásra
+    onOpenSession: (SessionExport) -> Unit,
+    onRestore: (String) -> Unit // ÚJ: Visszaállítás callback
 ) {
-    var files by remember { mutableStateOf(emptyList<String>()) }
-
     val coroutineScope = rememberCoroutineScope()
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf("Aktív mérések", "Törölt mérések")
 
-
-    fun reloadFiles() {
-        files = FileStorage.listFiles()
-            .filter { it.endsWith(".json", ignoreCase = true) }
-    }
+    // ÚJ: Törlés megerősítő ablak állapota a mérésekhez
+    var sessionToDelete by remember { mutableStateOf<SessionExport?>(null) }
 
     LaunchedEffect(Unit) {
-        reloadFiles()
+        onRefresh()
+    }
+
+    // Törlés tájékoztató ablak
+    if (sessionToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { sessionToDelete = null },
+            title = { Text("Mérés törlése") },
+            text = { Text("Tájékoztatás: A mérés eltűnik az aktív nézetből, de a háttérben az adatok megmaradnak, így a 'Törölt mérések' fülön bármikor visszaállíthatod őket.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val sid = sessionToDelete!!.sessionInfo.sessionId
+                        sessionToDelete = null
+                        coroutineScope.launch {
+                            val result = SessionRepository.deleteSession(sid)
+                            if (result.isSuccess) {
+                                onRefresh()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text("Törlés") }
+            },
+            dismissButton = {
+                TextButton(onClick = { sessionToDelete = null }) { Text("Mégsem") }
+            }
+        )
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mentett Munkamenetek") },
+                title = { Text("Mentett munkamenetek") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    TextButton(onClick = { reloadFiles() }) {
-                        Text("Refresh")
-                    }
+                    TextButton(onClick = onRefresh) { Text("Frissítés") }
                 }
             )
         }
     ) { paddingValues ->
-        if (files.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Nincs mentett session fájl.")
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(files) { fileName ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Fájlnév bal oldalon
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = fileName,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-                            // Gombok jobb oldalon (Megnyitás és Törlés)
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                // Megtekintés / Megnyitás gomb
-                                IconButton(onClick = { onOpenSession(fileName) }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Assessment,
-                                        contentDescription = "Eredmények megtekintése",
-                                        tint = MaterialTheme.colorScheme.primary
+            // FÜLEK (Aktív / Törölt)
+            TabRow(selectedTabIndex = selectedTabIndex) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+
+            val currentList = if (selectedTabIndex == 0) sessions else deletedSessions
+
+            if (currentList.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(if (selectedTabIndex == 0) "Nincsenek mentett mérések a felhőben." else "A törölt mérések listája üres.")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(currentList) { session ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (selectedTabIndex == 1) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = session.sessionInfo.timeStamp.replace("T", " ").substringBefore("."),
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (selectedTabIndex == 1) Color.Gray else Color.White
+                                    )
+                                    Text(
+                                        text = "Mód: ${session.sessionInfo.mode}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (selectedTabIndex == 1) Color.Gray else Color.LightGray
                                     )
                                 }
 
-                                // Törlés gomb
-                                IconButton(onClick = {
-                                    coroutineScope.launch {
-                                        // A teljes Hard Delete folyamat meghívása (Felhő + Helyi)
-                                        val result = SessionRepository.deleteSession(fileName)
-
-                                        // Ha a törlés sikeres volt (vagy offline módban helyileg törlődött), frissítjük a listát
-                                        if (result.isSuccess) {
-                                            reloadFiles()
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    // AKTÍV FÜL GOMBJAI
+                                    if (selectedTabIndex == 0) {
+                                        IconButton(onClick = { onOpenSession(session) }) {
+                                            Icon(Icons.Default.Assessment, contentDescription = "Megnyitás", tint = MaterialTheme.colorScheme.primary)
+                                        }
+                                        IconButton(onClick = { sessionToDelete = session }) {
+                                            Icon(Icons.Default.Delete, contentDescription = "Törlés", tint = MaterialTheme.colorScheme.error)
                                         }
                                     }
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Törlés",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
+                                    // TÖRÖLT FÜL GOMBJAI
+                                    else {
+                                        IconButton(onClick = { onRestore(session.sessionInfo.sessionId) }) {
+                                            Icon(Icons.Default.Restore, contentDescription = "Visszaállítás", tint = Color(0xFF4CAF50))
+                                        }
+                                    }
                                 }
                             }
                         }

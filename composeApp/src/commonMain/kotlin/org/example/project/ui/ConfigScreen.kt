@@ -1,12 +1,13 @@
 package org.example.project.ui
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,174 +15,213 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import org.example.project.data.ScheduledTask
+import org.example.project.data.Exercise
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
     patientId: String,
-    onPatientIdChange: (String) -> Unit,
-
-    athleteTasks: List<ScheduledTask>,
-    onAthleteTaskDurationChange: (Int, String) -> Unit,
-    onStartSession: () -> Unit,
-
+    onStartSingleTask: (Exercise, Int) -> Unit, // Közvetlen indítás Exercise + Idővel
     isBluetoothEnabled: Boolean,
     bluetoothStatus: String,
     onToggleBluetooth: (Boolean) -> Unit,
-    onOpenSavedSessions: () -> Unit,
-    onOpenProfile: () -> Unit,
-    // Kijelentkezés esemény
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    availableExercises: List<Exercise>,
+    onCreateNewExercise: () -> Unit,
+    onEditExercise: (Exercise) -> Unit
 ) {
+    // Állapotok a felugró indító panelhez
+    var exerciseToStart by remember { mutableStateOf<Exercise?>(null) }
+    var durationInput by remember { mutableStateOf("10") }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            // FIX: Dinamikus padding helyett biztonságos, fix felső margó, hogy a gomb kattintható legyen!
-            .padding(top = 48.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-            .verticalScroll(rememberScrollState())
+            .padding(top = 24.dp, start = 16.dp, end = 16.dp, bottom = 0.dp)
     ) {
-        // --- CÍMSOR ÉS KIJELENTKEZÉS GOMB ---
+        // CÍMSOR
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Munkamenet", style = MaterialTheme.typography.headlineMedium, color = Color.White)
-            Row {
-                IconButton(
-                    onClick = onOpenProfile,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profil",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        println("AUTH_DEBUG: Gombnyomás a ConfigScreen-en!")
-                        onLogout()
-                    },
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ExitToApp,
-                        contentDescription = "Kijelentkezés",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+            Text("Elérhető gyakorlatok", style = MaterialTheme.typography.headlineMedium, color = Color.White)
+            IconButton(onClick = onLogout) {
+                Icon(Icons.Default.ExitToApp, contentDescription = "Kijelentkezés", tint = MaterialTheme.colorScheme.error)
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- 1. BLOKK: BLUETOOTH WIDGET ---
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = isBluetoothEnabled,
-                        onCheckedChange = { onToggleBluetooth(it) },
-                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFF4CAF50), uncheckedColor = Color.LightGray)
-                    )
-                    Text("Bluetooth kapcsolat", fontWeight = FontWeight.Bold)
-
-                    if (bluetoothStatus.contains("Keresés") || bluetoothStatus.contains("Csatlakozás")) {
-                        Spacer(Modifier.width(8.dp))
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    }
-                }
-                Text(
-                    text = "Státusz: $bluetoothStatus",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = when {
-                        bluetoothStatus.contains("Hiba") || bluetoothStatus.contains("Megszakadt") -> Color(0xFFEF5350)
-                        bluetoothStatus.contains("Adat fogadva") -> Color(0xFF4CAF50)
-                        bluetoothStatus.contains("Csatlakoztatva") -> Color(0xFF64B5F6)
-                        else -> Color.LightGray
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // --- FELHASZNÁLÓNÉV (LEZÁRVA) ---
         OutlinedTextField(
             value = patientId,
-            onValueChange = { /* Szándékosan üres, a felhasználó nem írhatja felül */ },
-            label = { Text("Felhasználónév (Automatikus)") },
+            onValueChange = { },
+            label = { Text("Felhasználó (automatikus)") },
             modifier = Modifier.fillMaxWidth(),
-            readOnly = true, // Ettől a mező csak olvasható lesz
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Gray,
-                unfocusedBorderColor = Color.DarkGray,
-                disabledTextColor = Color.LightGray
-            )
+            readOnly = true
         )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // GYAKORLATOK LISTÁJA
+        val groupedExercises = availableExercises.groupBy { it.category ?: "Egyéb" }
 
-        // --- 2. BLOKK: SPORTOLÓI FELADATSOR ---
-        Text("Sportolói Feladatsor", style = MaterialTheme.typography.titleMedium, color = Color(0xFF64B5F6))
-        Card(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                athleteTasks.forEachIndexed { index, task ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            groupedExercises.forEach { (category, exercises) ->
+                item {
+                    Text(
+                        text = category.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                    )
+                }
+
+                items(exercises) { exercise ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text(task.displayName, modifier = Modifier.weight(1f))
-                        OutlinedTextField(
-                            value = if (task.duration == 0) "" else task.duration.toString(),
-                            onValueChange = { newValue ->
-                                if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
-                                    onAthleteTaskDurationChange(index, newValue)
+                        Row(
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = exercise.name, style = MaterialTheme.typography.titleMedium)
+                            }
+
+                            // Szerkesztés (Ha saját feladat)
+                            if (!exercise.is_global) {
+                                IconButton(onClick = { onEditExercise(exercise) }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Szerkesztés", tint = MaterialTheme.colorScheme.primary)
                                 }
-                            },
-                            label = { Text("Sec") },
-                            modifier = Modifier.width(80.dp),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            }
+
+                            // INDÍTÁS GOMB
+                            IconButton(onClick = { exerciseToStart = exercise }) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = "Mérés előkészítése", tint = Color(0xFF4CAF50), modifier = Modifier.size(32.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedButton(
+                    onClick = onCreateNewExercise,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Text("+ Új saját gyakorlat létrehozása")
+                }
+            }
+        }
+    }
+
+    // --- FELUGRÓ PANEL INDÍTÁS ELŐTT (Instrukció, Idő, Bluetooth) ---
+    if (exerciseToStart != null) {
+        ModalBottomSheet(
+            onDismissRequest = { exerciseToStart = null },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp).imePadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = exerciseToStart!!.name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Instrukció megjelenítése
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Instrukció:", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            text = exerciseToStart!!.instructions ?: "Nincs részletes instrukció megadva.",
+                            color = Color.White,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
 
+                // Bluetooth csatlakozás a panelen belül
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = isBluetoothEnabled,
+                                onCheckedChange = { onToggleBluetooth(it) },
+                                colors = CheckboxDefaults.colors(checkedColor = Color(0xFF4CAF50))
+                            )
+                            Text("Bluetooth csatlakoztatása", fontWeight = FontWeight.Bold)
+                        }
+                        Text(
+                            text = "Státusz: $bluetoothStatus",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.LightGray,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Időtartam megadása
+                OutlinedTextField(
+                    value = durationInput,
+                    onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) durationInput = it },
+                    label = { Text("Feladat időtartama (másodperc)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                    singleLine = true
+                )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Start Gomb
+                // START GOMB
+                // Biztosítjuk, hogy csak offline módban, vagy sikeresen csatlakoztatott (és adatot küldő) zoknival indulhasson a mérés
+                val isBluetoothReady = !isBluetoothEnabled || bluetoothStatus.startsWith("📡")
+
                 Button(
-                    onClick = onStartSession,
+                    onClick = {
+                        val time = durationInput.toIntOrNull() ?: 10
+                        onStartSingleTask(exerciseToStart!!, time)
+                        exerciseToStart = null
+                    },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isBluetoothReady) Color(0xFF4CAF50) else Color.Gray
+                    ),
+                    enabled = durationInput.isNotBlank() && isBluetoothReady
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("MÉRÉS INDÍTÁSA", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (isBluetoothEnabled && !isBluetoothReady) "VÁRAKOZÁS A ZOKNIRA..." else "MÉRÉS INDÍTÁSA",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
+                Spacer(modifier = Modifier.height(32.dp)) // Hely az alsó navigációs sáv miatt
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- 3. BLOKK: ALSÓ NAVIGÁCIÓ ---
-        OutlinedButton(
-            onClick = onOpenSavedSessions,
-            modifier = Modifier.fillMaxWidth().height(48.dp)
-        ) {
-            Text("MENTETT MUNKAMENETEK")
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }

@@ -1,10 +1,12 @@
 package org.example.project.data
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class SessionEntity(
     val session_id: String,
     val patient_id: String,
-    val json_file_path: String
+    val session_data: JsonObject,
+    val is_deleted: Boolean = false
 )

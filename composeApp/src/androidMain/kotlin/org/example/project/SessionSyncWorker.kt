@@ -3,7 +3,7 @@ package org.example.project.worker
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import org.example.project.data.SessionRepository
+import org.example.project.network.SessionRepository
 import org.example.project.data.FileStorage
 
 class SessionSyncWorker(
@@ -25,7 +25,7 @@ class SessionSyncWorker(
                 val sessionResult = SessionRepository.loadLocalSession(fileName)
 
                 sessionResult.onSuccess { sessionExport ->
-                    // Próbáljuk feltölteni a Supabase-be
+                    // A Repository elintézi a felhős beszúrást az új JSONB oszlopba
                     val uploadResult = SessionRepository.saveSession(
                         sessionExport.sessionInfo.sessionId,
                         sessionExport.sessionInfo.patientId,
@@ -33,14 +33,12 @@ class SessionSyncWorker(
                     )
 
                     uploadResult.onSuccess { message ->
-                        // JAVÍTÁS: Ellenőrizzük, hogy a Repository valóban feltöltötte-e, vagy csak visszaadta az offline fallback üzenetet!
                         if (message.contains("Offline mentve")) {
-                            // A hálózat továbbra sem jó, később újra kell próbálni a szinkronizálást
+                            // A hálózat továbbra sem jó, később újra kell próbálni
                             return Result.retry()
-                        } else {
-                            // A felhős mentés tényleg sikeres volt, jöhet a _synced utótag
-                            FileStorage.markAsUploaded(fileName)
                         }
+                        // A FileStorage.markAsUploaded(fileName) hívást innen kivettük,
+                        // mert a SessionRepository.saveSession sikeres ága már elvégezte!
                     }.onFailure {
                         // Ha valamilyen kritikus hiba miatt failure-t dob a repo
                         return Result.retry()

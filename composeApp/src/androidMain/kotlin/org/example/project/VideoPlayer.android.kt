@@ -17,16 +17,21 @@ import androidx.media3.ui.PlayerView
 actual fun VideoPlayer(videoName: String, isPaused: Boolean, modifier: Modifier) {
     val context = LocalContext.current
 
-    // Név alapján megkeressük a fájl erőforrás ID-ját a res/raw mappában
-    val videoResId = remember(videoName) {
-        context.resources.getIdentifier(videoName, "raw", context.packageName)
-    }
-
-    // ExoPlayer inicializálása
-    val exoPlayer = remember(videoResId) {
+    // ExoPlayer inicializálása - most már a videoName-re reagál, nem a ResId-re
+    val exoPlayer = remember(videoName) {
         ExoPlayer.Builder(context).build().apply {
-            if (videoResId != 0) {
-                val uri = Uri.parse("android.resource://${context.packageName}/$videoResId")
+
+            // ÚJ LOGIKA: Eldöntjük, hogy webes URL vagy helyi fájl
+            val uri = if (videoName.startsWith("http://", ignoreCase = true) || videoName.startsWith("https://", ignoreCase = true)) {
+                Uri.parse(videoName) // Internetes videó link
+            } else {
+                val videoResId = context.resources.getIdentifier(videoName, "raw", context.packageName)
+                if (videoResId != 0) {
+                    Uri.parse("android.resource://${context.packageName}/$videoResId") // Helyi raw fájl
+                } else null
+            }
+
+            if (uri != null) {
                 setMediaItem(MediaItem.fromUri(uri))
                 repeatMode = Player.REPEAT_MODE_ALL // Végtelenítés
                 prepare()
@@ -42,21 +47,20 @@ actual fun VideoPlayer(videoName: String, isPaused: Boolean, modifier: Modifier)
             exoPlayer.play()
         }
     }
+
     // Memóriaszivárgás megelőzése
     DisposableEffect(exoPlayer) {
         onDispose { exoPlayer.release() }
     }
 
     // A natív Androidos nézet beágyazása a Compose-ba
-    if (videoResId != 0) {
-        AndroidView(
-            factory = {
-                PlayerView(context).apply {
-                    player = exoPlayer
-                    useController = false // Lejátszásvezérlők elrejtése
-                }
-            },
-            modifier = modifier
-        )
-    }
+    AndroidView(
+        factory = {
+            PlayerView(context).apply {
+                player = exoPlayer
+                useController = false // Lejátszásvezérlők elrejtése
+            }
+        },
+        modifier = modifier
+    )
 }

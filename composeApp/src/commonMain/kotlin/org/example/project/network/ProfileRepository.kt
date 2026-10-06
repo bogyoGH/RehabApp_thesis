@@ -25,7 +25,9 @@ object ProfileRepository {
         return try {
             SupabaseManager.supabaseClient
                 .from("athletes")
-                .upsert(athlete)
+                .update(athlete) {
+                    filter { eq("id", athlete.id) }
+                }
             Result.success(true)
         } catch (e: Exception) {
             e.printStackTrace()

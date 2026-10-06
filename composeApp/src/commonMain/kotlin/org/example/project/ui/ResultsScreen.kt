@@ -28,7 +28,7 @@ fun ResultsScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Mérés Befejeződött",
+            text = "Mérés befejeződött",
             style = MaterialTheme.typography.headlineLarge,
             color = Color.White,
             fontWeight = FontWeight.Bold,

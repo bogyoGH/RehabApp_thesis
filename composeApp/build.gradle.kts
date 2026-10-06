@@ -64,6 +64,7 @@ kotlin {
             implementation("io.github.jan-tennert.supabase:auth-kt:${supabaseVersion}")
             implementation("io.ktor:ktor-client-core:3.0.0")
             implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
+            implementation("com.benasher44:uuid:0.8.4")
 
         }
         commonTest.dependencies {

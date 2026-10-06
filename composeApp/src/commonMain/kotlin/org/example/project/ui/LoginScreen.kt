@@ -194,7 +194,7 @@ fun LoginScreen() {
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(if (isRegisterMode) "Fiók Létrehozása" else "Bejelentkezés")
+                Text(if (isRegisterMode) "Fiók létrehozása" else "Bejelentkezés")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
