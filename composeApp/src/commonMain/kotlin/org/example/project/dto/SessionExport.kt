@@ -1,3 +1,5 @@
+//TODO:
+/*:Ha működik a bluetooth törölhető
 package org.example.project.dto
 
 import kotlinx.serialization.Serializable
@@ -32,9 +34,11 @@ data class SessionExport (
         }
     }
 
-    /**
+    */
+/**
      * Átalakítja a belső SensoriaData listát a felhőbe/JSON-be szánt ExportedSensorData listává.
-     */
+     *//*
+
     fun List<SensoriaData>.toExportedData(): List<ExportedSensorData> {
         return this.map { d ->
             ExportedSensorData(
@@ -45,3 +49,4 @@ data class SessionExport (
             )
         }
     }
+*/

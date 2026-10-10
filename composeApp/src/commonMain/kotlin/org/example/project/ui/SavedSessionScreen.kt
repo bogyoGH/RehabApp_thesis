@@ -16,31 +16,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.example.project.dto.SessionExport
+import org.example.project.dto.MeasurementDocument
 import org.example.project.network.SessionRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedSessionsScreen(
-    sessions: List<SessionExport>,
-    deletedSessions: List<SessionExport>, // ÚJ: Törölt mérések listája
+    patientId: String, // ÚJ PARAMÉTER
+    sessions: List<MeasurementDocument>,
+    deletedSessions: List<MeasurementDocument>,
     onRefresh: () -> Unit,
     onBack: () -> Unit,
-    onOpenSession: (SessionExport) -> Unit,
-    onRestore: (String) -> Unit // ÚJ: Visszaállítás callback
+    onOpenSession: (MeasurementDocument) -> Unit,
+    onRestore: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Aktív mérések", "Törölt mérések")
 
-    // ÚJ: Törlés megerősítő ablak állapota a mérésekhez
-    var sessionToDelete by remember { mutableStateOf<SessionExport?>(null) }
+    var sessionToDelete by remember { mutableStateOf<MeasurementDocument?>(null) }
 
-    LaunchedEffect(Unit) {
+    // ÚJ: Unit helyett a patientId-t figyeljük. Ha új felhasználó lép be (új ID), automatikusan frissít.
+    LaunchedEffect(patientId) {
         onRefresh()
     }
 
-    // Törlés tájékoztató ablak
     if (sessionToDelete != null) {
         AlertDialog(
             onDismissRequest = { sessionToDelete = null },
@@ -49,7 +49,7 @@ fun SavedSessionsScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val sid = sessionToDelete!!.sessionInfo.sessionId
+                        val sid = sessionToDelete!!.measurement_id
                         sessionToDelete = null
                         coroutineScope.launch {
                             val result = SessionRepository.deleteSession(sid)
@@ -84,7 +84,6 @@ fun SavedSessionsScreen(
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
-            // FÜLEK (Aktív / Törölt)
             TabRow(selectedTabIndex = selectedTabIndex) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
@@ -123,19 +122,18 @@ fun SavedSessionsScreen(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = session.sessionInfo.timeStamp.replace("T", " ").substringBefore("."),
+                                        text = session.start_time.replace("T", " ").substringBefore("."),
                                         fontWeight = FontWeight.Bold,
                                         color = if (selectedTabIndex == 1) Color.Gray else Color.White
                                     )
                                     Text(
-                                        text = "Mód: ${session.sessionInfo.mode}",
+                                        text = "Feladat: ${session.exercise_name ?: "Ismeretlen"}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = if (selectedTabIndex == 1) Color.Gray else Color.LightGray
                                     )
                                 }
 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    // AKTÍV FÜL GOMBJAI
                                     if (selectedTabIndex == 0) {
                                         IconButton(onClick = { onOpenSession(session) }) {
                                             Icon(Icons.Default.Assessment, contentDescription = "Megnyitás", tint = MaterialTheme.colorScheme.primary)
@@ -143,10 +141,8 @@ fun SavedSessionsScreen(
                                         IconButton(onClick = { sessionToDelete = session }) {
                                             Icon(Icons.Default.Delete, contentDescription = "Törlés", tint = MaterialTheme.colorScheme.error)
                                         }
-                                    }
-                                    // TÖRÖLT FÜL GOMBJAI
-                                    else {
-                                        IconButton(onClick = { onRestore(session.sessionInfo.sessionId) }) {
+                                    } else {
+                                        IconButton(onClick = { onRestore(session.measurement_id) }) {
                                             Icon(Icons.Default.Restore, contentDescription = "Visszaállítás", tint = Color(0xFF4CAF50))
                                         }
                                     }

@@ -21,15 +21,15 @@ class SessionSyncWorker(
             }
 
             for (fileName in pendingFiles) {
-                // Betöltjük a fájlt a neve alapján
+                // Betöltjük a fájlt a neve alapján (most már MeasurementDocument-et ad vissza)
                 val sessionResult = SessionRepository.loadLocalSession(fileName)
 
-                sessionResult.onSuccess { sessionExport ->
+                sessionResult.onSuccess { document ->
                     // A Repository elintézi a felhős beszúrást az új JSONB oszlopba
                     val uploadResult = SessionRepository.saveSession(
-                        sessionExport.sessionInfo.sessionId,
-                        sessionExport.sessionInfo.patientId,
-                        sessionExport
+                        document.measurement_id,
+                        document.athlete_id ?: "", // Ha valamiért null lenne, üres stringet adunk át
+                        document
                     )
 
                     uploadResult.onSuccess { message ->

@@ -12,13 +12,12 @@ import kotlinx.datetime.toLocalDateTime
 import org.example.project.MockDataGenerator
 import org.example.project.analysis.FullSessionResult
 import org.example.project.bluetooth.SensoriaBluetoothManager
+import org.example.project.bluetooth.SockSide
 import org.example.project.data.Exercise
 import org.example.project.data.ScheduledTask
-import org.example.project.data.SensoriaData
-import org.example.project.dto.ExportedTasks
-import org.example.project.dto.SessionExport
-import org.example.project.dto.SessionInfo
-import org.example.project.dto.toExportedData
+import org.example.project.data.FileStorage
+import org.example.project.data.SensorSample
+import org.example.project.dto.MeasurementDocument
 import org.example.project.network.ExerciseRepository
 import org.example.project.network.SessionRepository
 import org.example.project.network.SupabaseManager
@@ -35,13 +34,22 @@ class SessionViewModel {
     var sessionResult by mutableStateOf<FullSessionResult?>(null)
         private set
 
-    private val sessionData = mutableListOf<SensoriaData>()
+    // ÚJ: Két külön adatlista a két zokninak
+    private val leftSessionData = mutableListOf<SensorSample>()
+    private val rightSessionData = mutableListOf<SensorSample>()
+
+    private var sessionStartTimeStr: String = ""
+    private var sessionStartTimeMs: Long = 0
     private val viewModelScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var sessionJob: Job? = null
     private var bleJob: Job? = null
     private var bluetoothManager: SensoriaBluetoothManager? = null
 
-    var mySessions by mutableStateOf<List<SessionExport>>(emptyList())
+    // ÚJ: SessionExport helyett MeasurementDocument listák
+    var mySessions by mutableStateOf<List<MeasurementDocument>>(emptyList())
+        private set
+
+    var deletedSessions by mutableStateOf<List<MeasurementDocument>>(emptyList())
         private set
 
     var availableExercises by mutableStateOf<List<Exercise>>(emptyList())
@@ -50,13 +58,10 @@ class SessionViewModel {
     var exerciseToEdit by mutableStateOf<Exercise?>(null)
         private set
 
-    // A kiválasztott feladat tárolása
     var selectedTaskToRun by mutableStateOf<ScheduledTask?>(null)
         private set
 
-    var deletedSessions by mutableStateOf<List<SessionExport>>(emptyList())
-        private set
-
+    // ... (loadExercisesFromCloud változatlan marad) ...
     fun loadExercisesFromCloud() {
         viewModelScope.launch {
             val result = ExerciseRepository.getExercises()
@@ -68,20 +73,21 @@ class SessionViewModel {
         }
     }
 
-    // ÚJ: Egyetlen feladat indítása időtartammal
     fun startSingleTaskSession(exercise: Exercise, duration: Int) {
         if (uiState.isRunning) return
 
         selectedTaskToRun = ScheduledTask.Task(exercise, duration)
-        uiState = uiState.copy(sessionCompleted = false)
-        sessionData.clear()
 
-        // Ha nincs videó, automatikusan a kameraképet használjuk (nincs dialógus)
-        if (exercise.video_url.isNullOrBlank() || exercise.video_url == "buffer") {
-            confirmViewModeAndStart(ViewPreference.SELF)
-        } else {
-            uiState = uiState.copy(showViewModeDialog = true)
-        }
+        // ÚJ: Mindkét lista ürítése indításkor
+        leftSessionData.clear()
+        rightSessionData.clear()
+
+        uiState = uiState.copy(
+            sessionCompleted = false,
+            showViewModeDialog = true,
+            saveStatus = "",
+            recordedVideoPath = null
+        )
     }
 
     fun confirmViewModeAndStart(preference: ViewPreference) {
@@ -107,7 +113,6 @@ class SessionViewModel {
         uiState = uiState.copy(
             currentTaskName = task.displayName,
             currentVideoName = task.exercise.video_url ?: "buffer",
-            // JAVÍTÁS: Az Execution screen-en mostantól a DESCRIPTION (leírás) jelenik meg!
             currentInstruction = task.exercise.description ?: "Nincs megadva leírás.",
             currentFallback = ""
         )
@@ -117,6 +122,13 @@ class SessionViewModel {
             runCountdown(1, "Felkészülés: ")
         }
         uiState = uiState.copy(isPreviewPhase = false)
+
+        // ÚJ: Itt indul a tényleges mérés, elmentjük a kezdési időt
+        val now = Clock.System.now()
+        val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
+        sessionStartTimeStr = localDateTime.toString()
+        sessionStartTimeMs = Clock.System.now().toEpochMilliseconds()
+
         runCountdown(task.duration, "", isMainTask = true)
     }
 
@@ -133,8 +145,12 @@ class SessionViewModel {
                 progressValue = (seconds - sec).toFloat() / seconds
             )
 
+            // ÚJ: Ha offline módban vagyunk, mindkét lábra generálunk egy teszt csomagot
             if (isMainTask && !uiState.isBluetoothEnabled) {
-                repeat(25) { processNewData(MockDataGenerator.generatePacket(uiState.currentTaskName)) }
+                repeat(25) {
+                    processNewData(SockSide.LEFT, MockDataGenerator.generatePacket(uiState.currentTaskName, SockSide.LEFT))
+                    processNewData(SockSide.RIGHT, MockDataGenerator.generatePacket(uiState.currentTaskName, SockSide.RIGHT))
+                }
             }
 
             delay(1000)
@@ -142,12 +158,18 @@ class SessionViewModel {
         }
     }
 
-    private fun processNewData(data: SensoriaData) {
+    private fun processNewData(side: SockSide, data: SensorSample) {
         if (!uiState.isRunning || uiState.isPreviewPhase) return
-        sessionData.add(data.copy(taskName = uiState.currentTaskName))
-        uiState = uiState.copy(stabilityScore = "Adatok rögzítése folyamatban...")
+
+        if (side == SockSide.LEFT) {
+            leftSessionData.add(data)
+        } else {
+            rightSessionData.add(data)
+        }
+        uiState = uiState.copy(stabilityScore = "Adatok rögzítve (L: ${leftSessionData.size}, R: ${rightSessionData.size})")
     }
 
+    // ... (stopSession, finishSession, confirmSaveAndFinish marad) ...
     fun stopSession() {
         sessionJob?.cancel()
         uiState = uiState.copy(isRunning = false, sessionCompleted = false)
@@ -179,7 +201,10 @@ class SessionViewModel {
     }
 
     fun discardSession() {
-        sessionData.clear()
+        // ÚJ: Mindkét lista ürítése
+        leftSessionData.clear()
+        rightSessionData.clear()
+
         uiState = uiState.copy(
             showSaveDialog = false,
             sessionCompleted = true,
@@ -199,36 +224,73 @@ class SessionViewModel {
 
     fun resumeSession() {
         if (uiState.isRunning && uiState.isPaused) {
-            // Szünet után visszatöltjük a description-t
             uiState = uiState.copy(isPaused = false, currentInstruction = selectedTaskToRun?.exercise?.description ?: "Nincs megadva leírás.")
         }
     }
 
+    // ÚJ: MeasurementDocument JSON formátum generálása
     private suspend fun saveSessionToJson() {
         val now = Clock.System.now()
-        val localDateTime =
-            Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
-        val timeString = "${localDateTime.hour.toString().padStart(2, '0')}" +
-                "${localDateTime.minute.toString().padStart(2, '0')}" +
-                "${localDateTime.second.toString().padStart(2, '0')}"
+        val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
+        val endTimeStr = localDateTime.toString()
+        val timeString = "${localDateTime.hour.toString().padStart(2, '0')}${localDateTime.minute.toString().padStart(2, '0')}${localDateTime.second.toString().padStart(2, '0')}"
         val sessionId = "session_${uiState.virtualPatientId}-${localDateTime.date.toString().replace("-", "")}_$timeString"
 
-        val exportTasks = listOfNotNull(selectedTaskToRun?.let { ExportedTasks(it.displayName, it.duration) })
+        val durationMs = (Clock.System.now().toEpochMilliseconds() - sessionStartTimeMs).toInt()
+        val durationS = durationMs / 1000.0
 
-        val export = SessionExport(
-            sessionInfo = SessionInfo(
-                sessionId = sessionId,
-                patientId = uiState.virtualPatientId,
-                timeStamp = localDateTime.toString(),
-                mode = if (uiState.isBluetoothEnabled) "Online" else "Offline",
-                bluetoothEnabled = uiState.isBluetoothEnabled,
-                tasks = exportTasks
+        uiState = uiState.copy(saveStatus = "Mentés és feltöltés folyamatban...")
+
+        var videoMetaData: org.example.project.dto.Video? = null
+
+        if (uiState.recordedVideoPath != null) {
+            try {
+                val videoBytes = FileStorage.readBytes(uiState.recordedVideoPath!!)
+                if (videoBytes != null) {
+                    val uploadResult = SessionRepository.uploadMeasurementVideo(videoBytes, sessionId)
+                    if (uploadResult.isSuccess) {
+                        // Kinyerjük a visszatérési értékből a teljes http://... linket
+                        val fullVideoUrl = uploadResult.getOrNull() ?: ""
+
+                        // Ezt a teljes linket adjuk át a JSON export dokumentumnak
+                        videoMetaData = org.example.project.dto.Video(file_name = fullVideoUrl)
+                    }
+                }
+            } catch (e: Exception) {
+                println("Videó beolvasási/feltöltési hiba: ${e.message}")
+            }
+        }
+
+        // Az új, Swift alkalmazással kompatibilis JSON struktúra felépítése
+        val exportDocument = MeasurementDocument(
+            measurement_id = sessionId,
+            athlete_id = uiState.patientId,
+            athlete_name = uiState.virtualPatientId,
+            exercise_id = selectedTaskToRun?.exercise?.id,
+            exercise_name = selectedTaskToRun?.displayName,
+            start_time = sessionStartTimeStr,
+            end_time = endTimeStr,
+            duration_ms = durationMs,
+            duration_s = durationS,
+            sensors = org.example.project.dto.Sensors(
+                left = org.example.project.dto.Side(
+                    device_id = "Sensoria-C1-D348",
+                    sample_count = leftSessionData.size,
+                    effective_rate_samples_per_s = if (durationS > 0) leftSessionData.size / durationS else 0.0,
+                    data = leftSessionData.toList()
+                ),
+                right = org.example.project.dto.Side(
+                    device_id = "Sensoria-C1-9C1D",
+                    sample_count = rightSessionData.size,
+                    effective_rate_samples_per_s = if (durationS > 0) rightSessionData.size / durationS else 0.0,
+                    data = rightSessionData.toList()
+                )
             ),
-            sensorData = sessionData.toExportedData()
+            video = videoMetaData
         )
 
-        uiState = uiState.copy(saveStatus = "Mentés folyamatban...")
-        val result = SessionRepository.saveSession(sessionId, uiState.patientId, export)
+        // Mentés az adatbázisba
+        val result = SessionRepository.saveSession(sessionId, uiState.patientId, exportDocument)
 
         result.onSuccess { fileName ->
             uiState = uiState.copy(saveStatus = "Sikeres mentés: $fileName")
@@ -237,17 +299,7 @@ class SessionViewModel {
         }
     }
 
-    fun toggleBluetooth(enabled: Boolean) {
-        uiState = uiState.copy(isBluetoothEnabled = enabled)
-
-        if (enabled) {
-            startBluetoothListening()
-        } else {
-            uiState = uiState.copy(bluetoothStatus = "Leválasztva")
-            bleJob?.cancel()
-        }
-    }
-
+    // ÚJ: Bluetooth adatfolyam kezelés (Destructuring a Pairből)
     private fun startBluetoothListening() {
         uiState = uiState.copy(dataPacketCount = 0, bluetoothStatus = "Keresés...")
 
@@ -259,13 +311,13 @@ class SessionViewModel {
                         if (!uiState.bluetoothStatus.startsWith("📡 Adat fogadva")) {
                             uiState = uiState.copy(bluetoothStatus = status)
                         }
-                    })?.collect { data ->
+                    })?.collect { (side, data) -> // Pair (oldal, minta) fogadása
                     if (uiState.isBluetoothEnabled) {
                         val newCount = uiState.dataPacketCount + 1
                         uiState = uiState.copy(
                             dataPacketCount = newCount, bluetoothStatus = "📡 Adat fogadva ($newCount csomag)"
                         )
-                        processNewData(data)
+                        processNewData(side, data)
                     }
                 }
             } catch (e: Exception) {
@@ -273,6 +325,19 @@ class SessionViewModel {
             } finally {
                 cleanupBluetoothConnection()
             }
+        }
+    }
+
+    // ... (toggleBluetooth, cleanupBluetoothConnection, stb. változatlan marad) ...
+
+    fun toggleBluetooth(enabled: Boolean) {
+        uiState = uiState.copy(isBluetoothEnabled = enabled)
+
+        if (enabled) {
+            startBluetoothListening()
+        } else {
+            uiState = uiState.copy(bluetoothStatus = "Leválasztva")
+            bleJob?.cancel()
         }
     }
 
@@ -297,6 +362,11 @@ class SessionViewModel {
     }
 
     fun updatePatientIds(dbUuid: String, virtualId: String) {
+        // 1. Ürítsük ki a korábbi felhasználó listáit!
+        mySessions = emptyList()
+        deletedSessions = emptyList()
+
+        // 2. Utána frissítsük az állapotot
         uiState = uiState.copy(
             patientId = dbUuid,
             virtualPatientId = virtualId
@@ -318,7 +388,6 @@ class SessionViewModel {
     fun refreshSessions() {
         viewModelScope.launch {
             uiState = uiState.copy(currentTaskName = "Adatok szinkronizálása...")
-
             val result = SessionRepository.getMySessions()
 
             result.onSuccess { sessions ->
@@ -330,10 +399,11 @@ class SessionViewModel {
         }
     }
 
-    fun openCloudSession(sessionExport: SessionExport) {
+    // ÚJ: MeasurementDocument alapú megnyitás
+    fun openCloudSession(document: MeasurementDocument) {
         sessionResult = FullSessionResult(message = "A betöltött munkamenet adatai készen állnak a szerver oldali elemzésre.")
         uiState = uiState.copy(
-            patientId = sessionExport.sessionInfo.patientId,
+            patientId = document.athlete_id ?: "",
             currentTaskName = "Betöltött munkamenet",
             sessionCompleted = true
         )
@@ -364,5 +434,9 @@ class SessionViewModel {
                 uiState = uiState.copy(currentTaskName = "Hiba a visszaállítás során.")
             }
         }
+    }
+
+    fun setRecordedVideoPath(path: String) {
+        uiState = uiState.copy(recordedVideoPath = path)
     }
 }

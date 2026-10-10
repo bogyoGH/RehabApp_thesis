@@ -36,6 +36,7 @@ kotlin {
             implementation("androidx.media3:media3-ui:1.2.0")
             implementation("io.ktor:ktor-client-android:3.0.0")
             implementation("androidx.work:work-runtime-ktx:2.11.2")
+            implementation("androidx.camera:camera-video:1.3.0")
         }
         iosMain.dependencies {
             implementation("io.ktor:ktor-client-darwin:3.0.0")
@@ -64,7 +65,7 @@ kotlin {
             implementation("io.github.jan-tennert.supabase:auth-kt:${supabaseVersion}")
             implementation("io.ktor:ktor-client-core:3.0.0")
             implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
-            implementation("com.benasher44:uuid:0.8.4")
+
 
         }
         commonTest.dependencies {

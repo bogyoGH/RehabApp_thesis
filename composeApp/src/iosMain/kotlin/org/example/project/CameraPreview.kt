@@ -13,11 +13,41 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import platform.AVFoundation.*
 import platform.UIKit.UIView
 import platform.CoreGraphics.CGRectMake
+import platform.Foundation.NSURL
+import platform.Foundation.NSTemporaryDirectory
+import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun CameraPreview(modifier: Modifier) {
+actual fun CameraPreview(
+    modifier: Modifier,
+    isRecording: Boolean,
+    outputFileName: String?,
+    onVideoSaved: ((String) -> Unit)?
+) {
     var isCameraAuthorized by remember { mutableStateOf(false) }
+
+    // AVCapture objektumok megjegyzése a recomposition túléléséhez
+    val captureSession = remember { AVCaptureSession() }
+    val movieFileOutput = remember { AVCaptureMovieFileOutput() }
+
+    // Delegate a videórögzítés befejezésének lekezeléséhez (Kotlin/Native interop)
+    val recordingDelegate = remember {
+        object : NSObject(), AVCaptureFileOutputRecordingDelegateProtocol {
+            override fun captureOutput(
+                output: AVCaptureFileOutput,
+                didFinishRecordingToOutputFileAtURL: NSURL,
+                fromConnections: List<*>,
+                error: platform.Foundation.NSError?
+            ) {
+                if (error == null) {
+                    onVideoSaved?.invoke(didFinishRecordingToOutputFileAtURL.path ?: "")
+                } else {
+                    println("Hiba a videó mentésekor: ${error.localizedDescription}")
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         val status = AVCaptureDevice.authorizationStatusForMediaType(AVMediaTypeVideo)
@@ -32,15 +62,27 @@ actual fun CameraPreview(modifier: Modifier) {
         }
     }
 
+    // A rögzítés elindítása és leállítása a paraméter változásakor
+    LaunchedEffect(isRecording) {
+        if (isRecording && outputFileName != null) {
+            // Ideiglenes könyvtár használata iOS-en a rögzítéshez
+            val filePath = NSTemporaryDirectory() + outputFileName
+            val fileUrl = NSURL.fileURLWithPath(filePath)
+
+            movieFileOutput.startRecordingToOutputFileURL(fileUrl, recordingDelegate)
+        } else {
+            if (movieFileOutput.isRecording()) {
+                movieFileOutput.stopRecording()
+            }
+        }
+    }
+
     if (isCameraAuthorized) {
         UIKitView(
             modifier = modifier.fillMaxSize(),
             factory = {
-                // Kamera session inicializálása
-                val session = AVCaptureSession()
-                session.sessionPreset = AVCaptureSessionPresetMedium
+                captureSession.sessionPreset = AVCaptureSessionPresetMedium
 
-                // Előlapi kamera megkeresése
                 val device = AVCaptureDevice.defaultDeviceWithDeviceType(
                     deviceType = AVCaptureDeviceTypeBuiltInWideAngleCamera,
                     mediaType = AVMediaTypeVideo,
@@ -49,30 +91,29 @@ actual fun CameraPreview(modifier: Modifier) {
 
                 if (device != null) {
                     val input = AVCaptureDeviceInput.deviceInputWithDevice(device, null) as? AVCaptureDeviceInput
-                    if (input != null && session.canAddInput(input)) {
-                        session.addInput(input)
+                    if (input != null && captureSession.canAddInput(input)) {
+                        captureSession.addInput(input)
                     }
                 }
 
-                val previewLayer = AVCaptureVideoPreviewLayer(session = session)
+                // Hozzáadjuk a videórögzítő kimenetet a sessionhöz
+                if (captureSession.canAddOutput(movieFileOutput)) {
+                    captureSession.addOutput(movieFileOutput)
+                }
+
+                val previewLayer = AVCaptureVideoPreviewLayer(session = captureSession)
                 previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
 
                 val view = UIView(frame = CGRectMake(0.0, 0.0, 0.0, 0.0))
                 view.layer.addSublayer(previewLayer)
 
-                // Indítás egy háttérszálon, hogy ne blokkolja a UI-t
                 platform.Foundation.NSOperationQueue.mainQueue.addOperationWithBlock {
-                    session.startRunning()
+                    captureSession.startRunning()
                 }
-
-                // Amikor a view mérete változik, frissítjük a layer méretét
-                view.layer.setNeedsLayout()
-                view.layer.layoutIfNeeded()
 
                 view
             },
             update = { view ->
-                // Frissítjük a preview layer keretét a szülő nézet méretére
                 val layer = view.layer.sublayers?.firstOrNull() as? AVCaptureVideoPreviewLayer
                 layer?.frame = view.bounds
             }

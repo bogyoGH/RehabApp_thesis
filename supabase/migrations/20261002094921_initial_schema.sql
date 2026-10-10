@@ -131,8 +131,8 @@ CREATE OR REPLACE FUNCTION "public"."session_insert_trg"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     AS $$
 BEGIN
-    INSERT INTO zokni.sessions (id, session_id, patient_id, session_data, is_deleted)
-    VALUES (gen_random_uuid(), NEW.session_id, NEW.patient_id, NEW.session_data, false);
+    INSERT INTO zokni.sessions (id, session_id, patient_id, session_data, is_deleted, video_url, analysis_status)
+    VALUES (gen_random_uuid(), NEW.session_id, NEW.patient_id, NEW.session_data, false, NEW.video_url, NEW.analysis_status);
     RETURN NEW;
 END;
 $$;
@@ -178,7 +178,9 @@ CREATE TABLE IF NOT EXISTS "zokni"."sessions" (
     "session_id" "text" NOT NULL,
     "patient_id" "text" NOT NULL,
     "is_deleted" boolean,
-    "session_data" "jsonb" NOT NULL
+    "session_data" "jsonb" NOT NULL,
+    "video_url" "text",
+    "analysis_status" "text" DEFAULT 'pending'::"text"
 );
 
 
@@ -236,7 +238,9 @@ CREATE OR REPLACE VIEW "public"."sessions" WITH ("security_invoker"='true') AS
  SELECT "id",
     "session_id",
     "patient_id",
-    "session_data"
+    "session_data",
+    "video_url",
+    "analysis_status"
    FROM "zokni"."sessions"
   WHERE ("is_deleted" = false);
 
@@ -259,14 +263,6 @@ CREATE OR REPLACE TRIGGER "athlete_delete_trg" INSTEAD OF DELETE ON "public"."at
 
 
 CREATE OR REPLACE TRIGGER "athlete_insert_trg" INSTEAD OF INSERT ON "public"."athletes" FOR EACH ROW EXECUTE FUNCTION "public"."athlete_insert_trg"();
-
-
-
-CREATE OR REPLACE TRIGGER "session_delete_trg" INSTEAD OF DELETE ON "public"."sessions" FOR EACH ROW EXECUTE FUNCTION "public"."session_delete_trg"();
-
-
-
-CREATE OR REPLACE TRIGGER "session_insert_trg" INSTEAD OF INSERT ON "public"."sessions" FOR EACH ROW EXECUTE FUNCTION "public"."session_insert_trg"();
 
 
 

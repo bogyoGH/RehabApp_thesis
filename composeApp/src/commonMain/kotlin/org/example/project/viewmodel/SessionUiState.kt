@@ -20,5 +20,6 @@ data class SessionUiState(
     val viewPreference: ViewPreference = ViewPreference.BOTH,
     val showViewModeDialog: Boolean = false,
     val isPaused: Boolean = false,
-    val showSaveDialog: Boolean = false
+    val showSaveDialog: Boolean = false,
+    val recordedVideoPath: String? = null
 )

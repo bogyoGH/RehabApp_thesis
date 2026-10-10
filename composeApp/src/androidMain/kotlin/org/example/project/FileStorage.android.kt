@@ -80,4 +80,18 @@ actual object FileStorage {
         val newFile = File(context.filesDir, newName)
         return file.renameTo(newFile)
     }
+
+    actual fun readBytes(filePath: String): ByteArray? {
+        return try {
+            val file = File(filePath)
+            if (file.exists() && file.isFile) {
+                file.readBytes()
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 }

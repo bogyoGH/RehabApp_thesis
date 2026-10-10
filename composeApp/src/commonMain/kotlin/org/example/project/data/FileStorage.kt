@@ -10,4 +10,6 @@ expect object FileStorage {
     fun deleteFile(fileName: String): Boolean
     fun markAsUploaded(fileName: String): Boolean
     fun getPendingUploads(): List<String>
+
+    fun readBytes(filePath: String): ByteArray?
 }

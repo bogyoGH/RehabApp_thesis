@@ -259,18 +259,19 @@ fun App() {
 
                     composable("saved_sessions") {
                         SavedSessionsScreen(
+                            patientId = viewModel.uiState.patientId, // ÚJ: Átadjuk az azonosítót
                             sessions = viewModel.mySessions,
-                            deletedSessions = viewModel.deletedSessions, // ÚJ
+                            deletedSessions = viewModel.deletedSessions,
                             onRefresh = {
                                 viewModel.refreshSessions()
-                                viewModel.refreshDeletedSessions() // ÚJ
+                                viewModel.refreshDeletedSessions()
                             },
                             onBack = { navController.popBackStack() },
                             onOpenSession = { sessionExport ->
                                 viewModel.openCloudSession(sessionExport)
                                 navController.navigate("results")
                             },
-                            onRestore = { sessionId -> // ÚJ
+                            onRestore = { sessionId ->
                                 viewModel.restoreCloudSession(sessionId)
                             }
                         )

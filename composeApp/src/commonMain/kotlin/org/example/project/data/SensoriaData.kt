@@ -1,63 +1,42 @@
 package org.example.project.data
 
-import org.example.project.dto.ExportedSensorData
-import kotlin.time.Clock
-import org.example.project.dto.SessionExport
+import kotlinx.serialization.Serializable
 
-// A class a zokni adatait tartalmazza
-data class SensoriaData(
-    //idő változó
-    val timestamp: Long = Clock.System.now().toEpochMilliseconds(),
-    //A szenzorok adatai
-    val ch0: Int,
-    val ch1: Int,
-    val ch2: Int,
-    //Az adatok normalizálásához szükséges konstansok
-    val accelX: Int = 512,
-    val accelY: Int = 512,
-    val accelZ: Int = 512,
-    // Az adott feladat neve, amelyet később megkap értékként
-    val taskName: String = ""
-) {
-    //Normalizált adatokat kiszámoló függvény
-    fun GetNormalizedAcceleration(): Map<String, Double> {
-        return mapOf(
-            "x" to (accelX - 512) / 512.0 * 2.0,
-            "y" to (accelY - 512) / 512.0 * 2.0,
-            "z" to (accelZ - 512) / 512.0 * 2.0
-        )
-    }
+@Serializable
+data class SensorSample(
+    val t: Int,
+    val host_time_ms: Double? = null,
+    val pressure: Pressure,
+    val imu: IMU,
+    val magnetometer: Magnetometer,
+    val msgType: Int,
+    val context: Int,
+    val gs: Int,
+    val s: Int,
+    val g: Int,
+    val hz: Int
+)
 
-    fun SessionExport.toSensoriaDataList(): List<SensoriaData> {
-        return this.sensorData.map { exported ->
-            val x = exported.accelNormalized["x"] ?: 0.0
-            val y = exported.accelNormalized["y"] ?: 0.0
-            val z = exported.accelNormalized["z"] ?: 0.0
+@Serializable
+data class Pressure(
+    val heel: Double,
+    val met_1: Double,
+    val met_5: Double
+)
 
-            val rawX = ((x / 2.0) * 512.0 + 512).toInt().coerceIn(0, 1023)
-            val rawY = ((y / 2.0) * 512.0 + 512).toInt().coerceIn(0, 1023)
-            val rawZ = ((z / 2.0) * 512.0 + 512).toInt().coerceIn(0, 1023)
+@Serializable
+data class IMU(
+    val ax: Double,
+    val ay: Double,
+    val az: Double,
+    val gx: Double,
+    val gy: Double,
+    val gz: Double
+)
 
-            SensoriaData(
-                ch0 = exported.pressure["ch0"] ?: 0,
-                ch1 = exported.pressure["ch1"] ?: 0,
-                ch2 = exported.pressure["ch2"] ?: 0,
-                accelX = rawX,
-                accelY = rawY,
-                accelZ = rawZ,
-                taskName = exported.task
-            )
-        }
-    }
-
-    fun List<SensoriaData>.toExportedData(): List<ExportedSensorData> {
-        return this.map { d ->
-            ExportedSensorData(
-                timestamp = d.timestamp.toString(),
-                task = d.taskName,
-                pressure = mapOf("ch0" to d.ch0, "ch1" to d.ch1, "ch2" to d.ch2),
-                accelNormalized = d.GetNormalizedAcceleration()
-            )
-        }
-    }
-}
+@Serializable
+data class Magnetometer(
+    val mx: Double,
+    val my: Double,
+    val mz: Double
+)
