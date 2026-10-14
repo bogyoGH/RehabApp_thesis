@@ -153,7 +153,7 @@ object SessionRepository {
             val bucket = SupabaseManager.supabaseClient.storage.from("measurement-videos")
 
             bucket.upload(fileName, videoBytes)
-
+    //TODO ez a lépés security rés, elég lenne csak a session_id-t és a szerver oldalon kéne tudni az urlt
             val publicUrl = bucket.publicUrl(fileName)
             Result.success(publicUrl)
         } catch (e: Exception) {
