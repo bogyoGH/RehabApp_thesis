@@ -33,7 +33,8 @@ object SessionRepository {
             FileStorage.saveText(fileName, jsonString)
 
             // 2. Felhős mentés: KÖZVETLENÜL AZ ADATBÁZISBA
-            val sessionJsonElement = Json.Default.encodeToJsonElement(MeasurementDocument.serializer(), exportData).jsonObject
+            val sessionJsonElement =
+                Json.Default.encodeToJsonElement(MeasurementDocument.serializer(), exportData).jsonObject
 
             // Entitás létrehozása az adatbázis számára
             val dbEntity = SessionEntity(
@@ -95,21 +96,26 @@ object SessionRepository {
 
     suspend fun getMySessions(): Result<List<MeasurementDocument>> = withContext(Dispatchers.IO) {
         try {
+            println("ZOKNI_DEBUG: getMySessions() lekérdezés indítása...")
             val sessionEntities = SupabaseManager.supabaseClient
                 .from("sessions")
                 .select()
                 .decodeList<SessionEntity>()
 
+            println("ZOKNI_DEBUG: Talált sessionök száma: ${sessionEntities.size}")
             val sessionExports = sessionEntities.map { entity ->
-                Json { ignoreUnknownKeys = true }.decodeFromJsonElement(
+                val document = Json { ignoreUnknownKeys = true }.decodeFromJsonElement(
                     MeasurementDocument.serializer(),
                     entity.session_data
                 )
+
+                // Felülírjuk a JSON-ben lévő azonosítót az adatbázis valós session_id-jával
+                document.copy(measurement_id = entity.session_id)
             }
 
             Result.success(sessionExports)
         } catch (e: Exception) {
-            e.printStackTrace()
+            println("ZOKNI_DEBUG: Hiba a getMySessions lekérdezéskor: ${e.message}")
             Result.failure(e)
         }
     }
@@ -147,19 +153,39 @@ object SessionRepository {
         }
     }
 
-    suspend fun uploadMeasurementVideo(videoBytes: ByteArray, sessionId: String): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            val fileName = "$sessionId.mp4"
-            val bucket = SupabaseManager.supabaseClient.storage.from("measurement-videos")
+    suspend fun uploadMeasurementVideo(videoBytes: ByteArray, sessionId: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            try {
+                val fileName = "$sessionId.mp4"
+                val bucket = SupabaseManager.supabaseClient.storage.from("measurement-videos")
 
-            bucket.upload(fileName, videoBytes)
-    //TODO ez a lépés security rés, elég lenne csak a session_id-t és a szerver oldalon kéne tudni az urlt
-            val publicUrl = bucket.publicUrl(fileName)
-            Result.success(publicUrl)
-        } catch (e: Exception) {
-            println("Hiba a mérési videó feltöltésekor: ${e.message}")
-            e.printStackTrace()
-            Result.failure(e)
+                bucket.upload(fileName, videoBytes)
+                //TODO ez a lépés security rés, elég lenne csak a session_id-t és a szerver oldalon kéne tudni az urlt
+                val publicUrl = bucket.publicUrl(fileName)
+                Result.success(publicUrl)
+            } catch (e: Exception) {
+                println("Hiba a mérési videó feltöltésekor: ${e.message}")
+                e.printStackTrace()
+                Result.failure(e)
+            }
         }
-    }
+
+
+    suspend fun getBiomechanicsResult(sessionId: String): Result<org.example.project.data.BiomechanicsResult?> =
+        withContext(Dispatchers.IO) {
+            try {
+                println("ZOKNI_DEBUG: Biomechanikai eredmény lekérése ehhez: $sessionId")
+                val resultList = SupabaseManager.supabaseClient
+                    .from("biomechanics_results")
+                    .select {
+                        filter { eq("session_id", sessionId) }
+                    }.decodeList<org.example.project.data.BiomechanicsResult>()
+
+                println("ZOKNI_DEBUG: Lekérdezés sikeres. Talált eredmények száma: ${resultList.size}")
+                Result.success(resultList.firstOrNull())
+            } catch (e: Exception) {
+                println("ZOKNI_DEBUG: Hiba a biomechanikai adatok lekérésekor ($sessionId): ${e.message}")
+                Result.failure(e)
+            }
+        }
 }

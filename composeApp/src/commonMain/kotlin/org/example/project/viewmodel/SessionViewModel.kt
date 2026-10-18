@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.*
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
@@ -21,6 +22,7 @@ import org.example.project.dto.MeasurementDocument
 import org.example.project.network.ExerciseRepository
 import org.example.project.network.SessionRepository
 import org.example.project.network.SupabaseManager
+import org.example.project.data.BiomechanicsResult
 
 enum class ViewPreference {
     SELF, VIDEO, BOTH
@@ -32,6 +34,9 @@ class SessionViewModel {
         private set
 
     var sessionResult by mutableStateOf<FullSessionResult?>(null)
+        private set
+
+    var allBiomechanicsResults by mutableStateOf<List<org.example.project.data.BiomechanicsResult>>(emptyList())
         private set
 
     // ÚJ: Két külön adatlista a két zokninak
@@ -48,7 +53,8 @@ class SessionViewModel {
     // ÚJ: SessionExport helyett MeasurementDocument listák
     var mySessions by mutableStateOf<List<MeasurementDocument>>(emptyList())
         private set
-
+    var biomechanicsResult by mutableStateOf<BiomechanicsResult?>(null)
+        private set //
     var deletedSessions by mutableStateOf<List<MeasurementDocument>>(emptyList())
         private set
 
@@ -125,7 +131,8 @@ class SessionViewModel {
 
         // ÚJ: Itt indul a tényleges mérés, elmentjük a kezdési időt
         val now = Clock.System.now()
-        val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
+        val localDateTime =
+            Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
         sessionStartTimeStr = localDateTime.toString()
         sessionStartTimeMs = Clock.System.now().toEpochMilliseconds()
 
@@ -148,8 +155,14 @@ class SessionViewModel {
             // ÚJ: Ha offline módban vagyunk, mindkét lábra generálunk egy teszt csomagot
             if (isMainTask && !uiState.isBluetoothEnabled) {
                 repeat(25) {
-                    processNewData(SockSide.LEFT, MockDataGenerator.generatePacket(uiState.currentTaskName, SockSide.LEFT))
-                    processNewData(SockSide.RIGHT, MockDataGenerator.generatePacket(uiState.currentTaskName, SockSide.RIGHT))
+                    processNewData(
+                        SockSide.LEFT,
+                        MockDataGenerator.generatePacket(uiState.currentTaskName, SockSide.LEFT)
+                    )
+                    processNewData(
+                        SockSide.RIGHT,
+                        MockDataGenerator.generatePacket(uiState.currentTaskName, SockSide.RIGHT)
+                    )
                 }
             }
 
@@ -166,7 +179,8 @@ class SessionViewModel {
         } else {
             rightSessionData.add(data)
         }
-        uiState = uiState.copy(stabilityScore = "Adatok rögzítve (L: ${leftSessionData.size}, R: ${rightSessionData.size})")
+        uiState =
+            uiState.copy(stabilityScore = "Adatok rögzítve (L: ${leftSessionData.size}, R: ${rightSessionData.size})")
     }
 
     // ... (stopSession, finishSession, confirmSaveAndFinish marad) ...
@@ -224,17 +238,24 @@ class SessionViewModel {
 
     fun resumeSession() {
         if (uiState.isRunning && uiState.isPaused) {
-            uiState = uiState.copy(isPaused = false, currentInstruction = selectedTaskToRun?.exercise?.description ?: "Nincs megadva leírás.")
+            uiState = uiState.copy(
+                isPaused = false,
+                currentInstruction = selectedTaskToRun?.exercise?.description ?: "Nincs megadva leírás."
+            )
         }
     }
 
     // ÚJ: MeasurementDocument JSON formátum generálása
     private suspend fun saveSessionToJson() {
         val now = Clock.System.now()
-        val localDateTime = Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
+        val localDateTime =
+            Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
         val endTimeStr = localDateTime.toString()
-        val timeString = "${localDateTime.hour.toString().padStart(2, '0')}${localDateTime.minute.toString().padStart(2, '0')}${localDateTime.second.toString().padStart(2, '0')}"
-        val sessionId = "session_${uiState.virtualPatientId}-${localDateTime.date.toString().replace("-", "")}_$timeString"
+        val timeString = "${localDateTime.hour.toString().padStart(2, '0')}${
+            localDateTime.minute.toString().padStart(2, '0')
+        }${localDateTime.second.toString().padStart(2, '0')}"
+        val sessionId =
+            "session_${uiState.virtualPatientId}-${localDateTime.date.toString().replace("-", "")}_$timeString"
 
         val durationMs = (Clock.System.now().toEpochMilliseconds() - sessionStartTimeMs).toInt()
         val durationS = durationMs / 1000.0
@@ -359,6 +380,7 @@ class SessionViewModel {
             sessionCompleted = false, currentTaskName = "Ready to start"
         )
         sessionResult = null
+        biomechanicsResult = null
     }
 
     fun updatePatientIds(dbUuid: String, virtualId: String) {
@@ -393,6 +415,7 @@ class SessionViewModel {
             result.onSuccess { sessions ->
                 mySessions = sessions
                 uiState = uiState.copy(currentTaskName = "Kész. ${sessions.size} mérés betöltve.")
+                fetchAllBiomechanicsResults()
             }.onFailure { e ->
                 uiState = uiState.copy(currentTaskName = "Hiba a letöltéskor: ${e.message}")
             }
@@ -401,12 +424,28 @@ class SessionViewModel {
 
     // ÚJ: MeasurementDocument alapú megnyitás
     fun openCloudSession(document: MeasurementDocument) {
-        sessionResult = FullSessionResult(message = "A betöltött munkamenet adatai készen állnak a szerver oldali elemzésre.")
         uiState = uiState.copy(
             patientId = document.athlete_id ?: "",
-            currentTaskName = "Betöltött munkamenet",
-            sessionCompleted = true
+            currentTaskName = "Adatok betöltése...",
+            sessionCompleted = false
         )
+
+        viewModelScope.launch {
+            // Megpróbáljuk lekérni a kiszámolt eredményt az adatbázisból
+            val result = SessionRepository.getBiomechanicsResult(document.measurement_id)
+
+            if (result.isSuccess) {
+                biomechanicsResult = result.getOrNull()
+                sessionResult = FullSessionResult(message = "A mérés eredményei sikeresen betöltve.")
+            } else {
+                sessionResult = FullSessionResult(message = "Hiba történt az eredmények letöltésekor.")
+            }
+
+            uiState = uiState.copy(
+                currentTaskName = document.exercise_name ?: "Mentett Mérés",
+                sessionCompleted = true
+            )
+        }
     }
 
     fun setEditingExercise(exercise: Exercise?) {
@@ -438,5 +477,24 @@ class SessionViewModel {
 
     fun setRecordedVideoPath(path: String) {
         uiState = uiState.copy(recordedVideoPath = path)
+    }
+
+    fun fetchAllBiomechanicsResults() {
+        viewModelScope.launch {
+            try {
+                // Mivel az adatbázisban beállítottuk az RLS (Row Level Security) policy-t,
+                // a Supabase szervere automatikusan csak azokat a sorokat adja vissza,
+                // amelyek a bejelentkezett felhasználó (auth.uid) méréseihez tartoznak!
+                val results = SupabaseManager.supabaseClient
+                    .from("biomechanics_results")
+                    .select() // <-- Nincs szükség 'filter { isIn(...) }' blokkra!
+                    .decodeList<org.example.project.data.BiomechanicsResult>()
+
+                // Rendezzük időrendbe a 'kiszamitva' alapján
+                allBiomechanicsResults = results.sortedBy { it.kiszamitva }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

@@ -6,10 +6,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -66,7 +68,7 @@ fun App() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val showBottomNav = currentRoute in listOf("config", "saved_sessions", "profile")
+        val showBottomNav = currentRoute in listOf("config", "progress", "saved_sessions", "profile")
 
         Scaffold(
             bottomBar = {
@@ -132,6 +134,25 @@ fun App() {
                             colors = navItemColors, // Színek alkalmazása
                             onClick = {
                                 navController.navigate("profile") {
+                                    popUpTo(navController.graph.findStartDestination().route ?: "login") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Default.TrendingUp, contentDescription = "Haladás") },
+                            label = {
+                                Text(
+                                    text = "Haladás",
+                                    fontWeight = if (currentRoute == "progress") FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            selected = currentRoute == "progress",
+                            colors = navItemColors,
+                            onClick = {
+                                navController.navigate("progress") {
                                     popUpTo(navController.graph.findStartDestination().route ?: "login") { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
@@ -245,6 +266,7 @@ fun App() {
                         viewModel.sessionResult?.let { result ->
                             ResultsScreen(
                                 result = result,
+                                biomechanicsResult = viewModel.biomechanicsResult, // <-- Ezt adjuk át
                                 onBackToMenu = {
                                     viewModel.resetSessionState()
                                     navController.popBackStack("config", inclusive = false)
@@ -262,6 +284,8 @@ fun App() {
                             patientId = viewModel.uiState.patientId, // ÚJ: Átadjuk az azonosítót
                             sessions = viewModel.mySessions,
                             deletedSessions = viewModel.deletedSessions,
+                            // <--- Ezt az új sort is add hozzá
+                            evaluatedSessionIds = viewModel.allBiomechanicsResults.map { it.session_id },
                             onRefresh = {
                                 viewModel.refreshSessions()
                                 viewModel.refreshDeletedSessions()
@@ -275,6 +299,9 @@ fun App() {
                                 viewModel.restoreCloudSession(sessionId)
                             }
                         )
+                    }
+                    composable("progress") {
+                        ProgressScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
                     }
                 }
             }

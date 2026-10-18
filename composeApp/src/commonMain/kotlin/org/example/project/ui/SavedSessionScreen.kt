@@ -22,9 +22,10 @@ import org.example.project.network.SessionRepository
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedSessionsScreen(
-    patientId: String, // ÚJ PARAMÉTER
+    patientId: String,
     sessions: List<MeasurementDocument>,
     deletedSessions: List<MeasurementDocument>,
+    evaluatedSessionIds: List<String>,
     onRefresh: () -> Unit,
     onBack: () -> Unit,
     onOpenSession: (MeasurementDocument) -> Unit,
@@ -112,7 +113,9 @@ fun SavedSessionsScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (selectedTabIndex == 1) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = if (selectedTabIndex == 1) MaterialTheme.colorScheme.surfaceVariant.copy(
+                                    alpha = 0.5f
+                                ) else MaterialTheme.colorScheme.surfaceVariant
                             )
                         ) {
                             Row(
@@ -133,17 +136,45 @@ fun SavedSessionsScreen(
                                     )
                                 }
 
+                                // VISSZARAKVA: Ez a Row és az if feltétel hiányzott!
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (selectedTabIndex == 0) {
-                                        IconButton(onClick = { onOpenSession(session) }) {
-                                            Icon(Icons.Default.Assessment, contentDescription = "Megnyitás", tint = MaterialTheme.colorScheme.primary)
+                                        val isReady = evaluatedSessionIds.contains(session.measurement_id)
+
+                                        IconButton(
+                                            onClick = {
+                                                println("ZOKNI_DEBUG: Kattintás a megnyitás gombon. SessionID: ${session.measurement_id}, isReady: $isReady")
+
+                                                if (isReady) {
+                                                    println("ZOKNI_DEBUG: A mérés feldolgozva, navigálás a Results képernyőre...")
+                                                    onOpenSession(session)
+                                                } else {
+                                                    println("ZOKNI_DEBUG: A mérés még NINCS feldolgozva (vagy a kliens nem látja). Evaluated IDs: $evaluatedSessionIds")
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Assessment,
+                                                contentDescription = "Megnyitás",
+                                                tint = if (isReady) MaterialTheme.colorScheme.primary else Color.Gray.copy(
+                                                    alpha = 0.3f
+                                                )
+                                            )
                                         }
                                         IconButton(onClick = { sessionToDelete = session }) {
-                                            Icon(Icons.Default.Delete, contentDescription = "Törlés", tint = MaterialTheme.colorScheme.error)
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = "Törlés",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
                                         }
                                     } else {
                                         IconButton(onClick = { onRestore(session.measurement_id) }) {
-                                            Icon(Icons.Default.Restore, contentDescription = "Visszaállítás", tint = Color(0xFF4CAF50))
+                                            Icon(
+                                                Icons.Default.Restore,
+                                                contentDescription = "Visszaállítás",
+                                                tint = Color(0xFF4CAF50)
+                                            )
                                         }
                                     }
                                 }
@@ -155,3 +186,5 @@ fun SavedSessionsScreen(
         }
     }
 }
+
+

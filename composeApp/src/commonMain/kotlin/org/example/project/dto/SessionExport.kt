@@ -1,4 +1,4 @@
-//TODO:
+
 /*:Ha működik a bluetooth törölhető
 package org.example.project.dto
 
