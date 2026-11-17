@@ -1,5 +1,6 @@
 package org.example.project.network
 
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.rpc
@@ -11,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import org.example.project.analysis.SockAnalysisResult
 import org.example.project.data.FileStorage
 import org.example.project.data.SessionEntity
 import org.example.project.dto.MeasurementDocument
@@ -36,13 +38,14 @@ object SessionRepository {
             val sessionJsonElement =
                 Json.Default.encodeToJsonElement(MeasurementDocument.serializer(), exportData).jsonObject
 
+            val intialStatus = if (exportData.video?.file_name.isNullOrBlank()) "sock_only" else "pending"
             // Entitás létrehozása az adatbázis számára
             val dbEntity = SessionEntity(
                 session_id = sessionId,
                 patient_id = patientId,
                 session_data = sessionJsonElement,
                 video_url = exportData.video?.file_name, // Módosítva a MeasurementDocument alapján
-                analysis_status = "pending"
+                analysis_status = intialStatus
             )
 
             SupabaseManager.supabaseClient.from("sessions").insert(dbEntity)
@@ -69,6 +72,12 @@ object SessionRepository {
         try {
             SupabaseManager.supabaseClient.from("sessions").delete {
                 filter { eq("session_id", sessionId) }
+            }
+            // 2. Törlés a felhőbeli tárolóból (Bucket)
+            try {
+                SupabaseManager.supabaseClient.storage.from("measurement-videos").delete(listOf("$sessionId.mp4"))
+            } catch (e: Exception) {
+                println("Hiba a videó törlésekor a bucketből: ${e.message}")
             }
             FileStorage.deleteFile("$sessionId.json")
             FileStorage.deleteFile("${sessionId}_synced.json")
@@ -128,10 +137,14 @@ object SessionRepository {
                 .decodeList<SessionEntity>()
 
             val sessionExports = sessionEntities.map { entity ->
-                Json { ignoreUnknownKeys = true }.decodeFromJsonElement(
+                // 1. LÉPÉS: Mentsd el az eredményt a 'document' változóba!
+                val document = Json { ignoreUnknownKeys = true }.decodeFromJsonElement(
                     MeasurementDocument.serializer(),
                     entity.session_data
                 )
+
+                // 2. LÉPÉS: Most már le lehet másolni a valós session_id-val
+                document.copy(measurement_id = entity.session_id)
             }
             Result.success(sessionExports)
         } catch (e: Exception) {
@@ -139,7 +152,6 @@ object SessionRepository {
             Result.failure(e)
         }
     }
-
     suspend fun restoreSession(sessionId: String): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             SupabaseManager.supabaseClient.postgrest.rpc(
@@ -170,6 +182,43 @@ object SessionRepository {
             }
         }
 
+
+    @Serializable
+    private data class SockLookupRequest(val p_session_id: String)
+
+    suspend fun getSockAnalysis(
+        sessionId: String
+    ): Result<SockAnalysisResult?> = withContext(Dispatchers.IO) {
+        try {
+            println("ZOKNI DEBUG - Keresett sessionId: [$sessionId]")
+
+            val authUserId = SupabaseManager.supabaseClient
+                .auth.currentUserOrNull()?.id
+
+            println("ZOKNI DEBUG - Bejelentkezett user ID: $authUserId")
+
+            val response = SupabaseManager.supabaseClient.postgrest.rpc(
+                "get_my_sock_analysis",
+                SockLookupRequest(sessionId)
+            )
+
+            println("ZOKNI DEBUG - RPC válasz: ${response.data.take(500)}")
+
+            val value =
+                if (response.data.trim() == "null") {
+                    null
+                } else {
+                    Json { ignoreUnknownKeys = true }
+                        .decodeFromString<SockAnalysisResult>(response.data)
+                }
+
+            Result.success(value)
+
+        } catch (e: Exception) {
+            println("ZOKNI DEBUG - HIBA: ${e.message}")
+            Result.failure(e)
+        }
+    }
 
     suspend fun getBiomechanicsResult(sessionId: String): Result<org.example.project.data.BiomechanicsResult?> =
         withContext(Dispatchers.IO) {

@@ -39,6 +39,9 @@ class SessionViewModel {
     var allBiomechanicsResults by mutableStateOf<List<org.example.project.data.BiomechanicsResult>>(emptyList())
         private set
 
+    var sockAnalysisResult by mutableStateOf<org.example.project.analysis.SockAnalysisResult?>(null)
+        private set
+
     // ÚJ: Két külön adatlista a két zokninak
     private val leftSessionData = mutableListOf<SensorSample>()
     private val rightSessionData = mutableListOf<SensorSample>()
@@ -125,7 +128,7 @@ class SessionViewModel {
 
         if (!task.displayName.contains("Pihenő", ignoreCase = true)) {
             uiState = uiState.copy(isPreviewPhase = true)
-            runCountdown(1, "Felkészülés: ")
+            runCountdown(5, "Felkészülés: ")
         }
         uiState = uiState.copy(isPreviewPhase = false)
 
@@ -381,6 +384,7 @@ class SessionViewModel {
         )
         sessionResult = null
         biomechanicsResult = null
+        sockAnalysisResult = null
     }
 
     fun updatePatientIds(dbUuid: String, virtualId: String) {
@@ -431,11 +435,20 @@ class SessionViewModel {
         )
 
         viewModelScope.launch {
-            // Megpróbáljuk lekérni a kiszámolt eredményt az adatbázisból
+            // Biomechanikai eredmények lekérése
             val result = SessionRepository.getBiomechanicsResult(document.measurement_id)
-
             if (result.isSuccess) {
                 biomechanicsResult = result.getOrNull()
+            }
+
+            // ÚJ: Zokni eredmények lekérése
+            val sockResult = SessionRepository.getSockAnalysis(document.measurement_id)
+            if (sockResult.isSuccess) {
+                sockAnalysisResult = sockResult.getOrNull()
+            }
+
+            // Üzenet beállítása
+            if (result.isSuccess || sockResult.isSuccess) {
                 sessionResult = FullSessionResult(message = "A mérés eredményei sikeresen betöltve.")
             } else {
                 sessionResult = FullSessionResult(message = "Hiba történt az eredmények letöltésekor.")
@@ -447,7 +460,6 @@ class SessionViewModel {
             )
         }
     }
-
     fun setEditingExercise(exercise: Exercise?) {
         exerciseToEdit = exercise
     }

@@ -106,7 +106,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                             text = "KÉSZÜLJÖN FEL!",
                             color = Color(0xFFFFB74D),
                             fontWeight = FontWeight.Bold,
-                            fontSize = 40.sp,
+                            fontSize = 30.sp,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -154,7 +154,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     ) {
                         Text(
                             text = viewModel.uiState.timerText,
-                            fontSize = if (viewModel.uiState.isPreviewPhase) 48.sp else 80.sp,
+                            fontSize = if (viewModel.uiState.isPreviewPhase) 30.sp else 80.sp,
                             fontWeight = FontWeight.Black,
                             color = if (viewModel.uiState.isPreviewPhase) Color(0xFFFFB74D) else Color.White
                         )

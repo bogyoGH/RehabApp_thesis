@@ -55,10 +55,19 @@ fun App() {
 
         LaunchedEffect(viewModel.uiState.sessionCompleted) {
             if (viewModel.uiState.sessionCompleted && viewModel.sessionResult != null) {
-                navController.navigate("results") { popUpTo("execution") { inclusive = true } }
+                val currentRoute = navController.currentBackStackEntry?.destination?.route
+
+                // Csak akkor navigálunk, ha nem vagyunk már eleve a results képernyőn
+                if (currentRoute != "results") {
+                    navController.navigate("results") {
+                        // Csak akkor szedjük ki az 'execution'-t a stackből, ha tényleg egy új mérésről érkeztünk!
+                        if (currentRoute == "execution") {
+                            popUpTo("execution") { inclusive = true }
+                        }
+                    }
+                }
             }
         }
-
         LaunchedEffect(currentUser) {
             if (currentUser != null) {
                 viewModel.updatePatientIds(currentUser.id, autoUsername)
@@ -266,7 +275,8 @@ fun App() {
                         viewModel.sessionResult?.let { result ->
                             ResultsScreen(
                                 result = result,
-                                biomechanicsResult = viewModel.biomechanicsResult, // <-- Ezt adjuk át
+                                biomechanicsResult = viewModel.biomechanicsResult,
+                                sockAnalysisResult = viewModel.sockAnalysisResult, // <--- EZ HIÁNYZOTT
                                 onBackToMenu = {
                                     viewModel.resetSessionState()
                                     navController.popBackStack("config", inclusive = false)

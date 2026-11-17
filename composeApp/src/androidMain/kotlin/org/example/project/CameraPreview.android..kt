@@ -25,7 +25,6 @@ actual fun CameraPreview(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Biztonságos minőségválasztó, ami elkerüli a hardveres fagyást!
     val videoCapture = remember {
         val qualitySelector = QualitySelector.from(
             Quality.HD,
