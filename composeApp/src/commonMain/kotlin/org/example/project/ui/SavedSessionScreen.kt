@@ -37,7 +37,7 @@ fun SavedSessionsScreen(
 
     var sessionToDelete by remember { mutableStateOf<MeasurementDocument?>(null) }
 
-    // ÚJ: Unit helyett a patientId-t figyeljük. Ha új felhasználó lép be (új ID), automatikusan frissít.
+    //  Unit helyett a patientId-t figyeljük. Ha új felhasználó lép be (új ID), automatikusan frissít.
     LaunchedEffect(patientId) {
         onRefresh()
     }

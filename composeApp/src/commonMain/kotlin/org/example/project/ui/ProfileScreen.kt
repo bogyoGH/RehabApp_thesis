@@ -131,7 +131,7 @@ fun ProfileScreen(
                     onValueChange = { if (it.matches(Regex("^\\d*[.,]?\\d*$"))) height = it },
                     label = { Text("Magasság (cm)") },
                     singleLine = true,
-                    // ÚJ: Next action
+
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     modifier = Modifier.fillMaxWidth()
@@ -143,7 +143,7 @@ fun ProfileScreen(
                     onValueChange = { if (it.matches(Regex("^\\d*[.,]?\\d*$"))) weight = it },
                     label = { Text("Testsúly (kg)") },
                     singleLine = true,
-                    // ÚJ: Done action (Utolsó mező)
+
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                     modifier = Modifier.fillMaxWidth()

@@ -24,7 +24,7 @@ import org.example.project.data.Exercise
 @Composable
 fun ConfigScreen(
     patientId: String,
-    onStartSingleTask: (Exercise, Int) -> Unit, // Közvetlen indítás Exercise + Idővel
+    onStartSingleTask: (Exercise, Int) -> Unit,
     isBluetoothEnabled: Boolean,
     bluetoothStatus: String,
     onToggleBluetooth: (Boolean) -> Unit,

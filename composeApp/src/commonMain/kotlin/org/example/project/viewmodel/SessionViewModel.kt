@@ -53,7 +53,7 @@ class SessionViewModel {
     private var bleJob: Job? = null
     private var bluetoothManager: SensoriaBluetoothManager? = null
 
-    // ÚJ: SessionExport helyett MeasurementDocument listák
+
     var mySessions by mutableStateOf<List<MeasurementDocument>>(emptyList())
         private set
     var biomechanicsResult by mutableStateOf<BiomechanicsResult?>(null)
@@ -70,7 +70,7 @@ class SessionViewModel {
     var selectedTaskToRun by mutableStateOf<ScheduledTask?>(null)
         private set
 
-    // ... (loadExercisesFromCloud változatlan marad) ...
+
     fun loadExercisesFromCloud() {
         viewModelScope.launch {
             val result = ExerciseRepository.getExercises()
@@ -87,7 +87,7 @@ class SessionViewModel {
 
         selectedTaskToRun = ScheduledTask.Task(exercise, duration)
 
-        // ÚJ: Mindkét lista ürítése indításkor
+
         leftSessionData.clear()
         rightSessionData.clear()
 
@@ -132,7 +132,7 @@ class SessionViewModel {
         }
         uiState = uiState.copy(isPreviewPhase = false)
 
-        // ÚJ: Itt indul a tényleges mérés, elmentjük a kezdési időt
+
         val now = Clock.System.now()
         val localDateTime =
             Instant.fromEpochMilliseconds(now.toEpochMilliseconds()).toLocalDateTime(TimeZone.currentSystemDefault())
@@ -155,7 +155,7 @@ class SessionViewModel {
                 progressValue = (seconds - sec).toFloat() / seconds
             )
 
-            // ÚJ: Ha offline módban vagyunk, mindkét lábra generálunk egy teszt csomagot
+
             if (isMainTask && !uiState.isBluetoothEnabled) {
                 repeat(25) {
                     processNewData(
@@ -186,7 +186,7 @@ class SessionViewModel {
             uiState.copy(stabilityScore = "Adatok rögzítve (L: ${leftSessionData.size}, R: ${rightSessionData.size})")
     }
 
-    // ... (stopSession, finishSession, confirmSaveAndFinish marad) ...
+
     fun stopSession() {
         sessionJob?.cancel()
         uiState = uiState.copy(isRunning = false, sessionCompleted = false)
@@ -218,7 +218,7 @@ class SessionViewModel {
     }
 
     fun discardSession() {
-        // ÚJ: Mindkét lista ürítése
+
         leftSessionData.clear()
         rightSessionData.clear()
 
@@ -248,7 +248,7 @@ class SessionViewModel {
         }
     }
 
-    // ÚJ: MeasurementDocument JSON formátum generálása
+
     private suspend fun saveSessionToJson() {
         val now = Clock.System.now()
         val localDateTime =
@@ -285,7 +285,7 @@ class SessionViewModel {
             }
         }
 
-        // Az új, Swift alkalmazással kompatibilis JSON struktúra felépítése
+
         val exportDocument = MeasurementDocument(
             measurement_id = sessionId,
             athlete_id = uiState.patientId,
@@ -323,7 +323,7 @@ class SessionViewModel {
         }
     }
 
-    // ÚJ: Bluetooth adatfolyam kezelés (Destructuring a Pairből)
+
     private fun startBluetoothListening() {
         uiState = uiState.copy(dataPacketCount = 0, bluetoothStatus = "Keresés...")
 
@@ -352,7 +352,7 @@ class SessionViewModel {
         }
     }
 
-    // ... (toggleBluetooth, cleanupBluetoothConnection, stb. változatlan marad) ...
+
 
     fun toggleBluetooth(enabled: Boolean) {
         uiState = uiState.copy(isBluetoothEnabled = enabled)
@@ -388,11 +388,11 @@ class SessionViewModel {
     }
 
     fun updatePatientIds(dbUuid: String, virtualId: String) {
-        // 1. Ürítsük ki a korábbi felhasználó listáit!
+
         mySessions = emptyList()
         deletedSessions = emptyList()
 
-        // 2. Utána frissítsük az állapotot
+
         uiState = uiState.copy(
             patientId = dbUuid,
             virtualPatientId = virtualId
@@ -426,7 +426,7 @@ class SessionViewModel {
         }
     }
 
-    // ÚJ: MeasurementDocument alapú megnyitás
+
     fun openCloudSession(document: MeasurementDocument) {
         uiState = uiState.copy(
             patientId = document.athlete_id ?: "",
@@ -441,7 +441,7 @@ class SessionViewModel {
                 biomechanicsResult = result.getOrNull()
             }
 
-            // ÚJ: Zokni eredmények lekérése
+            // Zokni eredmények lekérése
             val sockResult = SessionRepository.getSockAnalysis(document.measurement_id)
             if (sockResult.isSuccess) {
                 sockAnalysisResult = sockResult.getOrNull()
@@ -499,7 +499,7 @@ class SessionViewModel {
                 // amelyek a bejelentkezett felhasználó (auth.uid) méréseihez tartoznak!
                 val results = SupabaseManager.supabaseClient
                     .from("biomechanics_results")
-                    .select() // <-- Nincs szükség 'filter { isIn(...) }' blokkra!
+                    .select()
                     .decodeList<org.example.project.data.BiomechanicsResult>()
 
                 // Rendezzük időrendbe a 'kiszamitva' alapján

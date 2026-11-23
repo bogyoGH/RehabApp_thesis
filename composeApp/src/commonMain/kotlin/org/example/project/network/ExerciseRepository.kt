@@ -86,10 +86,10 @@ object ExerciseRepository {
         }
     }
 
-    // ÚJ: Videó feltöltése a Supabase Storage-ba
+    // Videó feltöltése a Supabase Storage-ba
     suspend fun uploadVideo(videoBytes: ByteArray): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // MÓDOSÍTÁS: uuid4() hívása
+
             val uuid = uuid4()
             val fileName = "video_$uuid.mp4"
             val bucket = SupabaseManager.supabaseClient.storage.from("exercise-videos")
@@ -107,14 +107,14 @@ object ExerciseRepository {
         }
     }
 
-    //Saját gyakorlat törlése (és a hozzá tartozó videó eltávolítása a Storage-ből)
+    //Saját gyakorlat törlése
     suspend fun deleteCustomExercise(exercise: Exercise): Result<Boolean> = withContext(Dispatchers.IO) {
         return@withContext try {
             // 1. Ha van hozzá feltöltött videó, töröljük a Storage bucketből
             val videoUrl = exercise.video_url
             if (!videoUrl.isNullOrBlank() && videoUrl.contains("exercise-videos")) {
                 try {
-                    // Kinyerjük a pontos fájlnevet a nyilvános URL végéről (utolsó '/' utáni rész)
+                    // Kinyerjük a pontos fájlnevet a nyilvános URL végéről
                     val fileName = videoUrl.substringAfterLast("/")
                     if (fileName.isNotBlank()) {
                         val bucket = SupabaseManager.supabaseClient.storage.from("exercise-videos")

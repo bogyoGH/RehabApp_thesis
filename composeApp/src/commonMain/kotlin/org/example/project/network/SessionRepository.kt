@@ -29,12 +29,12 @@ object SessionRepository {
         exportData: MeasurementDocument
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            // 1. Helyi mentés továbbra is marad fájlba (az offline szinkronizációhoz)
+            // 1. Helyi mentés  (az offline szinkronizációhoz)
             val jsonString = Json { prettyPrint = true }.encodeToString(exportData)
             val fileName = "$sessionId.json"
             FileStorage.saveText(fileName, jsonString)
 
-            // 2. Felhős mentés: KÖZVETLENÜL AZ ADATBÁZISBA
+            // 2. Felhős mentés
             val sessionJsonElement =
                 Json.Default.encodeToJsonElement(MeasurementDocument.serializer(), exportData).jsonObject
 
@@ -137,13 +137,13 @@ object SessionRepository {
                 .decodeList<SessionEntity>()
 
             val sessionExports = sessionEntities.map { entity ->
-                // 1. LÉPÉS: Mentsd el az eredményt a 'document' változóba!
+
                 val document = Json { ignoreUnknownKeys = true }.decodeFromJsonElement(
                     MeasurementDocument.serializer(),
                     entity.session_data
                 )
 
-                // 2. LÉPÉS: Most már le lehet másolni a valós session_id-val
+
                 document.copy(measurement_id = entity.session_id)
             }
             Result.success(sessionExports)

@@ -17,11 +17,11 @@ import androidx.media3.ui.PlayerView
 actual fun VideoPlayer(videoName: String, isPaused: Boolean, modifier: Modifier) {
     val context = LocalContext.current
 
-    // ExoPlayer inicializálása - most már a videoName-re reagál, nem a ResId-re
+
     val exoPlayer = remember(videoName) {
         ExoPlayer.Builder(context).build().apply {
 
-            // ÚJ LOGIKA: Eldöntjük, hogy webes URL vagy helyi fájl
+
             val uri = if (videoName.startsWith("http://", ignoreCase = true) || videoName.startsWith("https://", ignoreCase = true)) {
                 Uri.parse(videoName) // Internetes videó link
             } else {

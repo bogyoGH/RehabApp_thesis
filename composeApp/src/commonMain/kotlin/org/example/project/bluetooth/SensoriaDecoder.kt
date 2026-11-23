@@ -5,7 +5,7 @@ import org.example.project.data.*
 object SensoriaDecoder {
 
     fun decodePacket(byteArray: ByteArray): SensorSample? {
-        // A Swift specifikáció alapján a teljes keret pontosan 20 bájt (160 bit)
+        // A teljes keret pontosan 20 bájt (160 bit)
         if (byteArray.size < 20) return null
 
         return try {
@@ -25,7 +25,7 @@ object SensoriaDecoder {
             val ch1 = reader.readBits(10)
             val ch2 = reader.readBits(10)
 
-            // Mágnesmérő
+            // Magnetometer
             val magX = reader.readBits(10)
             val magY = reader.readBits(10)
             val magZ = reader.readBits(10)
@@ -35,7 +35,7 @@ object SensoriaDecoder {
             val accelY = reader.readBits(10)
             val accelZ = reader.readBits(10)
 
-            // Giroszkóp (Ez hiányzott a korábbi kódból)
+            // Giroszkóp
             val gyroX = reader.readBits(10)
             val gyroY = reader.readBits(10)
             val gyroZ = reader.readBits(10)

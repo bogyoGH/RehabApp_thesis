@@ -84,13 +84,13 @@ fun App() {
                 if (showBottomNav) {
                     NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
 
-                        // ÚJ: Navigációs elemek egyedi színbeállításai
+
                         val navItemColors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.White, // Fehér ikon az aktív fülön
-                            selectedTextColor = MaterialTheme.colorScheme.primary, // Lila szöveg
-                            indicatorColor = MaterialTheme.colorScheme.primary, // Lila háttér az aktív ikon mögött
-                            unselectedIconColor = Color.Gray, // Halvány szürke ikon inaktív állapotban
-                            unselectedTextColor = Color.Gray // Halvány szürke szöveg inaktív állapotban
+                            selectedIconColor = Color.White,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray
                         )
 
                         NavigationBarItem(
@@ -102,7 +102,7 @@ fun App() {
                                 )
                             },
                             selected = currentRoute == "config",
-                            colors = navItemColors, // Színek alkalmazása
+                            colors = navItemColors,
                             onClick = {
                                 navController.navigate("config") {
                                     popUpTo(navController.graph.findStartDestination().route ?: "login") { saveState = true }
@@ -121,7 +121,7 @@ fun App() {
                                 )
                             },
                             selected = currentRoute == "saved_sessions",
-                            colors = navItemColors, // Színek alkalmazása
+                            colors = navItemColors,
                             onClick = {
                                 navController.navigate("saved_sessions") {
                                     popUpTo(navController.graph.findStartDestination().route ?: "login") { saveState = true }
@@ -140,7 +140,7 @@ fun App() {
                                 )
                             },
                             selected = currentRoute == "profile",
-                            colors = navItemColors, // Színek alkalmazása
+                            colors = navItemColors,
                             onClick = {
                                 navController.navigate("profile") {
                                     popUpTo(navController.graph.findStartDestination().route ?: "login") { saveState = true }
@@ -245,7 +245,7 @@ fun App() {
                             onDelete = { exerciseToDelete ->
                                 scope.launch {
                                     isSaving = true
-                                    // MÓDOSÍTÁS: A teljes objektumot adjuk át a törléshez
+
                                     val result = org.example.project.network.ExerciseRepository.deleteCustomExercise(exerciseToDelete)
                                     isSaving = false
                                     if (result.isSuccess) {
@@ -276,7 +276,7 @@ fun App() {
                             ResultsScreen(
                                 result = result,
                                 biomechanicsResult = viewModel.biomechanicsResult,
-                                sockAnalysisResult = viewModel.sockAnalysisResult, // <--- EZ HIÁNYZOTT
+                                sockAnalysisResult = viewModel.sockAnalysisResult,
                                 onBackToMenu = {
                                     viewModel.resetSessionState()
                                     navController.popBackStack("config", inclusive = false)
@@ -291,10 +291,10 @@ fun App() {
 
                     composable("saved_sessions") {
                         SavedSessionsScreen(
-                            patientId = viewModel.uiState.patientId, // ÚJ: Átadjuk az azonosítót
+                            patientId = viewModel.uiState.patientId,
                             sessions = viewModel.mySessions,
                             deletedSessions = viewModel.deletedSessions,
-                            // <--- Ezt az új sort is add hozzá
+
                             evaluatedSessionIds = viewModel.allBiomechanicsResults.map { it.session_id },
                             onRefresh = {
                                 viewModel.refreshSessions()

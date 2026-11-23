@@ -38,5 +38,5 @@ data class Side(
 data class Video(
     val file_name: String,
     val camera_position: String = "back",
-    val timing_reference: String = "android_host" // Androidra módosítva
+    val timing_reference: String = "android_host"
 )

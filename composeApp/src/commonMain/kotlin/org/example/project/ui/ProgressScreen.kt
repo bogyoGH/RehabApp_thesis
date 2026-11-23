@@ -31,7 +31,7 @@ import org.example.project.viewmodel.SessionViewModel
 import kotlin.math.roundToInt
 import kotlin.time.Instant
 
-// Kibővített adatstruktúra, ami tárolja a formázott dátumot és a feladat nevét is
+// Adatstruktúra, ami tárolja a formázott dátumot és a feladat nevét is
  data class TimedScore(
     val timeMillis: Long,
     val score: Float,
@@ -44,8 +44,8 @@ import kotlin.time.Instant
 fun ProgressScreen(viewModel: SessionViewModel, onBack: () -> Unit) {
     val results = viewModel.allBiomechanicsResults
 
-    // FELTÉTELEZÉS: A ViewModel-ben benne vannak a mérések adatai (MeasurementDocument listaként),
-    // hogy tudjuk a feladat nevét és a kezdés idejét. Ha nálad máshogy hívják, írd át ezt a sort!
+
+
     val sessions = viewModel.mySessions
 
     var selectedMetric by remember { mutableStateOf("Összpontszám") }
@@ -162,7 +162,7 @@ fun ProgressLineChart(data: List<TimedScore>) {
 
     // Dinamikus szélesség kiszámítása, hogy lapozható maradjon sok adat esetén
     val minWidth = 300.dp
-    val pointSpacing = 80.dp // Ennyi hely kell két adatpont közé, hogy kiférjen a dátum
+    val pointSpacing = 80.dp
     val calculatedWidth = (data.size * pointSpacing.value).dp
     val chartWidth = max(minWidth, calculatedWidth)
 
@@ -202,7 +202,7 @@ fun ProgressLineChart(data: List<TimedScore>) {
                 val maxScore = 10f
 
                 // --- BELSŐ MARGÓ A SZÖVEGEK MIATT ---
-                // Eltoljuk 36 dp-vel a grafikon kezdetét és végét, hogy a szöveg ne lógjon le a Canvasról
+
                 val horizontalPadding = 36.dp.toPx()
                 val usableWidth = canvasWidth - (2 * horizontalPadding)
 
@@ -284,7 +284,7 @@ fun ProgressLineChart(data: List<TimedScore>) {
                         topLeft = Offset(x - (scoreLayout.size.width / 2f), y - scoreLayout.size.height - 8.dp.toPx())
                     )
 
-                    // Adatpont pötty
+                    // Adatpont
                     drawCircle(
                         color = primaryColor,
                         radius = 12f,

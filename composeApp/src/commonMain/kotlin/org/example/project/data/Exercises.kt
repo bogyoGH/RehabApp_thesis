@@ -12,6 +12,6 @@ data class Exercise(
     val video_url: String? = "buffer",
     val is_global: Boolean = false,
     val created_by: String? = null,
-    val created_at: String? = null, // EZ HIÁNYZOTT
-    val is_deleted: Boolean = false // ÉS EZ IS
+    val created_at: String? = null,
+    val is_deleted: Boolean = false
 )

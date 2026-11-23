@@ -14,8 +14,6 @@ object MockDataGenerator {
 
     fun generatePacket(taskName: String = "", side: SockSide = SockSide.LEFT): SensorSample {
         tick++
-        // ... (A korábbi logika alapján számolhatsz ch0, ch1, ch2, accel értékeket)
-        // Itt egy egyszerűsített visszatérés a példa kedvéért:
 
         return SensorSample(
             t = tick,

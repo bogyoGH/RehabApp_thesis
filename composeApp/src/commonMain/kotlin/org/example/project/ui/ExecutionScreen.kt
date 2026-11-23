@@ -52,17 +52,17 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
         )
     }
 
-    // ÚJ KÜLSŐ BOX: Ez teszi lehetővé, hogy a töltőképernyő minden mást letakarjon a Z tengelyen
+    // Ez teszi lehetővé, hogy a töltőképernyő minden mást letakarjon a Z tengelyen
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // FŐ KONTÉNER (Korábban ez volt a legkülső elem)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- 1. BLOKK: FELADAT CÍME ---
+            // FELADAT CÍME
             Text(
                 text = viewModel.uiState.currentTaskName,
                 style = MaterialTheme.typography.headlineMedium,
@@ -71,7 +71,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
-            // --- 2. BLOKK: KAMERAKÉP (Teljes rendelkezésre álló tér) ---
+            // KAMERAKÉP (Teljes rendelkezésre álló tér)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -80,7 +80,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     .clipToBounds()
             ) {
                 val isPreview = viewModel.uiState.isPreviewPhase
-                // JAVÍTÁS: remember-be tesszük, hogy ne változzon a másodperces visszaszámláláskor!
+
                 val videoFileName = remember { "session_${viewModel.uiState.virtualPatientId}_${Clock.System.now().toEpochMilliseconds()}.mp4" }
 
                 CameraPreview(
@@ -131,7 +131,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 }
             }
 
-            // --- 3. BLOKK: VEZÉRLŐPULT (Nagy méretű gombok és időzítő) ---
+            // VEZÉRLŐPULT (Nagy méretű gombok és időzítő)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.surfaceVariant,
@@ -222,7 +222,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                 }
             }
 
-            // --- MENTÉS DIALÓGUS ---
+            //MENTÉS DIALÓGUS
             if (viewModel.uiState.showSaveDialog) {
                 // Ellenőrizzük, hogy ha kértünk videót, akkor megérkezett-e már az elérési út a kamerától
                 val isVideoReady = !isRecordingApproved || viewModel.uiState.recordedVideoPath != null
@@ -234,7 +234,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     confirmButton = {
                         Button(
                             onClick = { viewModel.confirmSaveAndFinish() },
-                            enabled = isVideoReady, // JAVÍTÁS: Csak akkor engedi menteni, ha a videó tényleg lemezen van
+                            enabled = isVideoReady,
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                         ) {
                             Text("Mentés", fontWeight = FontWeight.Bold)
@@ -250,14 +250,14 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     }
                 )
             }
-        } // Fő Column vége
+        }
 
-        // --- TÖLTŐKÉPERNYŐ OVERLAY (Kikerült a Column-ból, így rátakar mindenre) ---
+        // TÖLTŐKÉPERNYŐ OVERLAY
         if (viewModel.uiState.saveStatus.isNotEmpty() && !viewModel.uiState.sessionCompleted) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    // Félig átlátszó sötét háttér, ami mindent eltakar
+
                     .background(Color.Black.copy(alpha = 0.85f)),
                 contentAlignment = Alignment.Center
             ) {
@@ -266,7 +266,7 @@ fun ExecutionScreen(viewModel: SessionViewModel, onStop: () -> Unit) {
                     verticalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator(
-                        color = Color(0xFF4CAF50), // Zöld töltés
+                        color = Color(0xFF4CAF50),
                         modifier = Modifier.size(64.dp),
                         strokeWidth = 6.dp
                     )

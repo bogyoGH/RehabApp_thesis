@@ -21,7 +21,7 @@ class SessionSyncWorker(
             }
 
             for (fileName in pendingFiles) {
-                // Betöltjük a fájlt a neve alapján (most már MeasurementDocument-et ad vissza)
+                // Betöltjük a fájlt a neve alapján (MeasurementDocument-et ad vissza)
                 val sessionResult = SessionRepository.loadLocalSession(fileName)
 
                 sessionResult.onSuccess { document ->
@@ -37,8 +37,7 @@ class SessionSyncWorker(
                             // A hálózat továbbra sem jó, később újra kell próbálni
                             return Result.retry()
                         }
-                        // A FileStorage.markAsUploaded(fileName) hívást innen kivettük,
-                        // mert a SessionRepository.saveSession sikeres ága már elvégezte!
+
                     }.onFailure {
                         // Ha valamilyen kritikus hiba miatt failure-t dob a repo
                         return Result.retry()

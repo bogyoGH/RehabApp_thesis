@@ -38,7 +38,7 @@ actual fun CameraPreview(
 
     var activeRecording by remember { mutableStateOf<Recording?>(null) }
 
-    // Előkészítjük a kamera nézetet (Csak egyszer fut le)
+    // Előkészítjük a kamera nézetet
     val previewView = remember {
         PreviewView(context).apply {
             implementationMode = PreviewView.ImplementationMode.COMPATIBLE
@@ -46,7 +46,7 @@ actual fun CameraPreview(
         }
     }
 
-    // 1. Kamera hozzákötése az életciklushoz (CSAK EGYSZER a képernyő betöltésekor)
+    // 1. Kamera hozzákötése az életciklushoz
     LaunchedEffect(lifecycleOwner) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
@@ -93,7 +93,7 @@ actual fun CameraPreview(
         }
     }
 
-    // 3. Maga a felület (factory-t használunk, update blokk nélkül!)
+    // 3. Maga a felület
     AndroidView(
         modifier = modifier,
         factory = { previewView }

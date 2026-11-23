@@ -35,7 +35,7 @@ fun ExerciseFormScreen(
     var instructions by remember { mutableStateOf(initialExercise?.instructions ?: "") }
     var videoURL by remember { mutableStateOf(initialExercise?.video_url ?: "") }
 
-    // ÚJ: Uri helyett közvetlenül a ByteArray-t (fájladatokat) tároljuk
+    // Közvetlenül a ByteArray-t (fájladatokat) tároljuk
     var selectedVideoBytes by remember { mutableStateOf<ByteArray?>(null) }
     var isUploadingVideo by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -43,7 +43,7 @@ fun ExerciseFormScreen(
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
 
-    // ÚJ: A platformfüggetlen fájlválasztónk meghívása
+
     val videoPicker = rememberVideoPickerLauncher { bytes ->
         selectedVideoBytes = bytes
     }
@@ -137,7 +137,7 @@ fun ExerciseFormScreen(
                     Text("Oktatóvideó (opcionális)", style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // ÚJ: Gomb, ami meghívja a platformfüggetlen Launchert
+
                     Button(onClick = { videoPicker.launch() }) {
                         Text(if (selectedVideoBytes == null && videoURL.isBlank()) "Videó kiválasztása galériából" else "Másik videó választása")
                     }
@@ -206,7 +206,7 @@ fun ExerciseFormScreen(
                     Text("Gyakorlat Mentése")
                 }
 
-                // ÚJ: TÖRLÉS GOMB (Csak meglévő feladat szerkesztésekor jelenik meg)
+                // TÖRLÉS GOMB (Csak meglévő feladat szerkesztésekor jelenik meg)
                 if (initialExercise != null) {
                     OutlinedButton(
                         onClick = { onDelete(initialExercise) },

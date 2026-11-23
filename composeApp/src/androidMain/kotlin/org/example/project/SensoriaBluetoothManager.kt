@@ -27,7 +27,7 @@ actual class SensoriaBluetoothManager actual constructor(
         get() = AppContextHolder.context
             ?: error("AppContextHolder.context nincs inicializálva")
 
-    // UUID-k a Swift kód alapján
+    // UUID-k a Sensoria BLE szolgáltatáshoz és jellemzőkhöz
     private val sensoriaServiceUuid: UUID = UUID.fromString("1cac0001-656e-696c-4b5f-6e6572726157")
     private val dataCharacteristicUuid: UUID = UUID.fromString("1cac0003-656e-696c-4b5f-6e6572726157")
     private val cccdUuid: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
@@ -119,11 +119,9 @@ actual class SensoriaBluetoothManager actual constructor(
                 private fun handleIncomingPacket(value: ByteArray) {
                     val rawSample = SensoriaDecoder.decodePacket(value)
                     if (rawSample != null) {
-                        // Kiszámoljuk a telefon (hoszt) idejét, ahogy a Swift kód is kéri
                         val hostTimeMs = (System.currentTimeMillis() - measurementStartTimeMs).toDouble()
                         val sampleWithHostTime = rawSample.copy(host_time_ms = hostTimeMs)
 
-                        // Elküldjük a Flow-ba az oldallal együtt
                         trySend(Pair(side, sampleWithHostTime))
                     }
                 }
@@ -135,7 +133,7 @@ actual class SensoriaBluetoothManager actual constructor(
                 val device = result.device
                 val deviceName = result.scanRecord?.deviceName ?: safeDeviceName(device) ?: ""
 
-                // Swift logika: Eszköz nevéből döntjük el a bal/jobb oldalt
+                // Eszköz nevéből döntjük el a bal/jobb oldalt
                 val side = when (deviceName) {
                     preferredLeftSockName -> SockSide.LEFT
                     preferredRightSockName -> SockSide.RIGHT
