@@ -1,230 +1,151 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# Sportolói mozgás- és terhelésadatok elemzését támogató felhőalapú alkalmazás
+
+Ez a repozitórium a **„Sportolói mozgás- és terhelésadatok elemzését támogató felhőalapú alkalmazás fejlesztése”** című szakdolgozathoz tartozó mobilalkalmazás forráskódját és az adatbázis kialakításához használt SQL-állományokat tartalmazza.
+
+A rendszer Kotlin Multiplatform (KMP) és Compose Multiplatform alapú mobilalkalmazásból, valamint Supabase-alapú (PostgreSQL, Storage, Auth) háttérrendszerből áll. Célja az egyensúlyozási és rehabilitációs gyakorlatok során keletkező mozgás- és terhelésadatok gyűjtése, tárolása, feldolgozása és megjelenítése. Az adatgyűjtés Sensoria okoszoknik Bluetooth Low Energy (BLE) kapcsolatán és okostelefonos videórögzítésen alapul; a kiértékelés egy része adatbázisoldali eljárásokkal történik.
+
+> **Fontos – forráskód és reprodukálhatóság:** A nyilvános repozitórium nem tartalmazza a fejlesztői környezet Supabase-végpontját és klienskonfigurációját (`SupabaseClient.kt`), az esetleges helyi `.env` fájlokat, illetve a valódi mérési videókat és JSON-adatállományokat. A hiányzó Kotlin-fájlt az alábbi útmutató szerint kell pótolni. **A letöltött projekt jelenlegi formájában nem fordítható változtatás nélkül**, és a teljes működéshez külön konfigurált háttérrendszer, megfelelő hozzáférési szabályok, egyes funkciókhoz pedig megfelelő hardver és külső feldolgozó szolgáltatások szükségesek. A mellékelt minta nem jelent ellenőrzött, teljes körű telepítési receptet.
+
+## Főbb funkciók
+
+- **Felhasználókezelés és profil:** e-mail/jelszó alapú regisztráció és bejelentkezés Supabase Auth segítségével; antropometriai adatok (életkor, nem, magasság, testsúly) kezelése.
+- **Gyakorlatkatalógus:** globális és egyéni gyakorlatok létrehozása, szerkesztése, törlése, valamint oktatóvideók kezelése a Supabase Storage használatával.
+- **Párhuzamos BLE-adatgyűjtés:** két Sensoria okoszokni GATT-kapcsolatának kezelése; 20 bájtos bináris adatcsomagok dekódolása. A feldolgozott adatok között talpi nyomás, gyorsulás, giroszkóp- és magnetométer-adatok szerepelnek.
+- **Videórögzítés és mérésvezérlés:** előlapi kamerás HD-videórögzítés Androidon (CameraX), előkészületi és mérési visszaszámláló, szüneteltetés és leállítás, továbbá szintetikus szenzoradatok előállítása a `MockDataGenerator` segítségével.
+- **Helyi mentés és szinkronizáció:** mérési adatok tárolása JSON-fájlokban; Androidon WorkManager-alapú, hálózati feltételhez kötött háttérszinkronizáció.
+- **Eredménymegjelenítés:** biomechanikai össz- és részpontszámok (stabilitás, alátámasztás, szimmetria), törzsdőlés-idősor, talpi nyomáseloszlás és CoP-proxy pálya, időbeli fejlődést mutató diagramok, logikai törlés és visszaállítás.
+- **Szerveroldali kiértékelés:** PostgreSQL/PL/pgSQL eljárások és triggerek; védett adatbázisséma, RLS-alapú hozzáférés-kezelés és publikus API-nézetek.
+
+## Rendszerarchitektúra
+
+```text
+Sensoria okoszoknik (BLE) ──┐
+                           ├──> KMP / Android mobilalkalmazás
+Telefon kamerája (CameraX) ┘    (MVVM, Compose, WorkManager)
+                                       |
+                                       | HTTPS / Supabase API
+                                       v
+                               Supabase háttérrendszer
+                               ├── Auth
+                               ├── Storage
+                               │   ├── measurement-videos
+                               │   └── exercise-videos
+                               └── PostgreSQL
+                                   ├── public API-nézetek
+                                   ├── védett `zokni` séma és RLS
+                                   └── PL/pgSQL kiértékelő triggerek
+
+Külső videófeldolgozás: NiFi + MMPose
+(A videófeldolgozó folyamat külön komponens;
+a reprodukálásához saját telepítés és konfiguráció szükséges.)
+```
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-    - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-      For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-      Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-      folder is the appropriate location.
+## Projektstruktúra
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+- [`composeApp/src/commonMain`](./composeApp/src/commonMain): megosztott Kotlin-kód, Compose felületek, állapotkezelés, adatmodellek és platformfüggetlen deklarációk.
+- [`composeApp/src/androidMain`](./composeApp/src/androidMain): Android-specifikus megvalósítások (BLE, kamera, helyi fájlok, háttérszinkronizáció).
+- [`composeApp/src/iosMain`](./composeApp/src/iosMain): iOS-specifikus forráskód, amennyiben az adott funkcióhoz implementáció áll rendelkezésre.
+- [`iosApp`](./iosApp): iOS alkalmazásindító projekt.
+- `supabase/`: a háttérrendszerhez tartozó SQL-állományok és egyéb szerveroldali fájlok (a tényleges fájlszerkezet szerint).
+- `gradlew`, `gradlew.bat` és a Gradle-projektfájlok: projektépítés és függőségkezelés.
 
-### Build and Run Android Application
+### Megosztott réteg (`commonMain`)
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
+#### Felhasználói felület és navigáció (`org.example.project.ui`)
 
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+| Fájl | Feladat |
+|---|---|
+| `App.kt` | Alkalmazásindítás, Material 3 téma, `NavHost`, alsó navigáció és bejelentkezési állapot figyelése. |
+| `LoginScreen.kt` | Regisztráció és bejelentkezés, profiladatok bekérése. |
+| `ConfigScreen.kt` | Gyakorlatkatalógus, időtartam és Bluetooth-kapcsolat beállítása. |
+| `ExerciseFormScreen.kt` | Egyéni gyakorlatok és oktatóvideók kezelése. |
+| `ExecutionScreen.kt` | Kamerakép, visszaszámlálók, szüneteltetés és mérésmentés. |
+| `ResultsScreen.kt` | Pontszámok, törzsdőlés-grafikon, talpi elemzés és CoP-proxy megjelenítése. |
+| `ProgressScreen.kt` | Korábbi mérések fejlődési diagramjai. |
+| `SavedSessionScreen.kt` | Mentett és logikailag törölt mérések kezelése, visszaállítása. |
+| `ProfileScreen.kt` | Profiladatok megjelenítése és módosítása. |
+| `CameraPreview.kt`, `VideoPlayer.kt`, `VideoPicker.kt` | Platformfüggő kamerás és videós funkciók megosztott deklarációi. |
 
-### Build and Run iOS Application
+#### Állapotkezelés (`org.example.project.viewmodel`)
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+- `SessionViewModel.kt`: a munkamenet teljes életciklusának vezérlése; időzítés, BLE- és szimulált adatgyűjtés, mérési dokumentum összeállítása, feltöltés és eredményszinkronizáció.
+- `SessionUiState.kt`: a felhasználói felület aktuális állapotát reprezentáló immutable adatosztály.
 
----
+#### Hálózati réteg (`org.example.project.network`)
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+- `AuthRepository.kt`: regisztráció, bejelentkezés, kijelentkezés és sportolói profil létrehozása.
+- `ProfileRepository.kt`: profiladatok lekérdezése és frissítése.
+- `ExerciseRepository.kt`: gyakorlatok kezelése, helyi `exercises_cache.json` gyorsítótár és oktatóvideók.
+- `SessionRepository.kt`: mérési munkamenetek helyi/felhős kezelése, videófeltöltés, `pending`/`sock_only` állapotok, logikai törlés, visszaállítás, `restore_session` és `get_my_sock_analysis` RPC-hívások, kiértékelések lekérdezése.
 
-Sportolói mozgás- és terhelésadatok elemzését támogató felhőalapú alkalmazás
+#### Bluetooth és jelfeldolgozás (`org.example.project.bluetooth`)
 
-Ez a repozitórium a „Sportolói mozgás- és terhelésadatok elemzését támogató felhőalapú alkalmazás fejlesztése” című
-szakdolgozathoz tartozó forráskódokat és adatbázis-sémát tartalmazza.
+- `SensoriaBluetoothManager.kt`: platformfüggetlen `expect` deklaráció a BLE-kapcsolathoz és a `Flow<Pair<SockSide, SensorSample>>` adatfolyamhoz.
+- `BitReader.kt`: különböző bitszélességű adatok kiolvasása bájttömbből.
+- `SensoriaDecoder.kt`: 20 bájtos Sensoria-keretek átalakítása `SensorSample` objektummá.
+- `SockSide.kt`: bal és jobb oldali zokni megkülönböztetése.
 
-A rendszer egy Kotlin Multiplatform (KMP) / Jetpack Compose alapú mobilalkalmazásból és egy Supabase (PostgreSQL +
-Storage + Auth) alapú felhőinfrastruktúrából áll. Célja az egyensúlyozási és rehabilitációs gyakorlatok objektív mérése
-Sensoria okoszoknik (Bluetooth Low Energy) és okostelefonos HD videórögzítés együttes használatával, valamint az adatok
-szerveroldali, adatbázis-szintű biomechanikai kiértékelése.
+#### Adatmodellek, DTO-k és segédosztályok
 
-Megjegyzés: Biztonsági és adatvédelmi (GDPR) okokból ez a repozitórium nem tartalmazza a szerver eléréséhez szükséges
-hitelesítő adatokat (SupabaseClient.kt / .env), a lokális build-fájlokat, valamint a valós sportolói mérési videókat és
-JSON-állományokat.
+- `MeasurementDocument.kt`: a helyben mentett és a szerverre küldött mérési JSON felépítése.
+- `SensoriaData.kt`: `SensorSample`, `Pressure`, `IMU`, `Magnetometer` adatmodellek.
+- `Athlete.kt`, `Exercises.kt`, `ScheduledTask.kt`, `SessionEntity.kt`: alap entitások és ütemezési modellek.
+- `BiomechanicsResult.kt`, `TrunkAnglePoint.kt`, `SockAnalysisResult.kt`: a szerveroldali eredmények deszerializálási modelljei.
+- `FileStorage.kt`, `SyncManager.kt`, `Platform.kt`: platformfüggetlen deklarációk a fájlkezeléshez, szinkronizációhoz és platformazonosításhoz.
+- `MockDataGenerator.kt`: szintetikus szenzoradatok hardver nélküli kipróbáláshoz.
 
-Főbb funkciók
+### Android-specifikus réteg (`androidMain`)
 
-Felhasználókezelés és profil: E-mail/jelszó alapú regisztráció és bejelentkezés (Supabase Auth), sportolói
-antropometriai adatok (életkor, nem, magasság, testsúly) kezelése.
+- `MainActivity.kt`, `AppContextHolder.kt`: Android belépési pont és az alkalmazáskontextus kezelése.
+- `SensoriaBluetoothManager.kt`: natív BLE-eszközkeresés, GATT-kapcsolatok, CCCD-értesítések és `host_time_ms` időbélyegek kezelése.
+- `CameraPreview.android.kt`: CameraX-alapú előnézet és MP4-videórögzítés.
+- `VideoPlayer.android.kt`, `VideoPicker.android.kt`: Media3 ExoPlayer és rendszeres videóválasztó integrációja.
+- `FileStorage.android.kt`: helyi JSON-fájlok kezelése a `context.filesDir` könyvtárban; szinkronizációs jelölés.
+- `SyncManager.android.kt`, `SessionSyncWorker.kt`: WorkManager/`CoroutineWorker`-alapú háttérszinkronizáció, `NetworkType.CONNECTED` hálózati feltétellel.
+- `Platform.android.kt`: Android-platformadatok szolgáltatása.
 
-Gyakorlatkatalógus: Globális és saját, egyéni gyakorlatok kezelése, oktatóvideók kiválasztása és feltöltése (Supabase
-Storage).
+**Platformmegjegyzés:** A KMP-projekt tartalmaz iOS-hez kapcsolódó projektstruktúrát, de a README-ben felsorolt CameraX- és WorkManager-funkciók Android-specifikusak. E dokumentáció nem állítja, hogy az Androidon bemutatott összes funkció teljes egészében tesztelt vagy elérhető iOS-en.
 
-Párhuzamos BLE adatgyűjtés: Bal és jobb oldali Sensoria okoszoknik szimultán GATT-kapcsolatkezelése és 20 bájtos (160
-bites) bináris adatcsomagok valós idejű dekódolása (3 talpi nyomásszenzor, 3-tengelyes gyorsulásmérő, giroszkóp és
-magnetométer).
+## Adatbázis és szerveroldali kiértékelés
 
-Videórögzítés és mérésvezérlés: Előlapi kamerás HD videórögzítés (CameraX), felkészülési és mérési visszaszámláló,
-szüneteltetés/leállítás, valamint offline szimulációs mód (MockDataGenerator) szenzor hiányában.
+A dokumentált PostgreSQL-struktúra két réteget használ:
 
-Offline-first működés: A mérések helyi JSON-fájlba mentése és hálózatkimaradás esetén automatikus, hálózathoz kötött
-háttérszinkronizáció (WorkManager).
+1. **Védett belső `zokni` séma:** a tényleges táblák, például `athletes`, `exercises`, `sessions`, `video_json`, `extracted_keypoints`, `biomechanics_results`, `sock_analysis_results`, `combined_analysis_results`. A hozzáférés-ellenőrzésben Row Level Security (RLS) szabályok vesznek részt.
+2. **Publikus `public` API-réteg:** `security_invoker` nézetek (például `athletes`, `exercises`, `sessions`, `deleted_sessions`, `biomechanics_results`) és szabályozott RPC-függvények (például `restore_session`, `get_my_sock_analysis`). Egyes írási és logikai törlési műveleteket `INSTEAD OF` triggerek kezelnek.
 
-Eredményvizualizáció és haladáskövetés: Biomechanikai össz- és részpontszámok (stabilitás, alátámasztás, szimmetria),
-görgethető törzsdőlés-idősor grafikon, talpi CoP-proxy pálya megjelenítése, időbeli fejlődési diagramok, valamint soft
-delete és visszaállítás.
+### Automatizált kiértékelés
 
-Szerveroldali kiértékelés és biztonság: Védett zokni séma, security_invoker publikus nézetek, sorszintű
-hozzáférés-vezérlés (RLS) és eseményvezérelt PL/pgSQL kiértékelő triggerek.
+| Trigger / folyamat | Feladat |
+|---|---|
+| `trg_after_video_json_insert` | A videós pózbecslésből származó anatómiai kulcspontok átemelése az `extracted_keypoints` táblába. |
+| `trg_calc_biomechanics` | `analysis_status = 'inserted'` esetén szűrés, anatómiai normalizálás, de Leva-alapú CoM-becslés, poszturális jellemzők és törzsszög-idősor előállítása. |
+| `trigger_evaluate_sock_on_inserted` | Zokniadatok elemzése videós feldolgozást követően, illetve `sock_only` mérési állapotban. |
+| `trigger_combined_on_video`, `trigger_combined_on_sock` | Videós és talpi mérési eredmények összevetése a két modalitás rendelkezésre állásakor. |
 
-Rendszerarchitektúra
+A külső NiFi–MMPose videófeldolgozó pipeline külön rendszerelem. A teljes rendszer helyi újratelepítéséhez a pipeline és a megfelelő adatbázis-/tárhelyszabályok konfigurálása is szükséges.
 
-[ Sensoria Okoszoknik (BLE) ] ──┐
-├──► [ KMP / Android Mobilalkalmazás ]
-[ Telefon Kamera (CameraX) ] ───┘ │  (MVVM, Jetpack Compose,
-│ WorkManager offline sync)
-▼ HTTPS (REST / Storage API)
-[ Supabase Backend ]
-├── Auth (JWT)
-├── Storage (measurement-videos, exercise-videos)
-└── PostgreSQL (public nézetek ──► zokni séma + RLS)
-│
-├──► Külső videófeldolgozó pipeline (NiFi + MMPose)
-└──► PL/pgSQL Triggerek (CoM, CoP-proxy, kombinált elemzés)
+## Konfiguráció és futtatás
 
-Projektstruktúra és fájlok leírása
+### Előfeltételek
 
-1. Közös réteg (commonMain)
+- Kompatibilis JDK és Android SDK, Android Studio vagy megfelelő Gradle-környezet.
+- A projektben definiált Gradle-függőségek letöltéséhez hálózati hozzáférés.
+- Saját Supabase-projekt és adatbázis; az SQL-állományok alkalmazásához megfelelő jogosultságok.
+- A felhős funkciókhoz megfelelő Auth-, Storage- és adatbázis-beállítások.
+- BLE-méréshez kompatibilis Sensoria okoszokni; kamerás méréshez megfelelő Android-eszköz és engedélyek.
+- iOS-alkalmazás indításához macOS, Xcode és az iOS-célplatformhoz szükséges fejlesztői környezet.
 
-Felhasználói felület és navigáció (org.example.project.ui)
+### 1. Supabase klienskonfiguráció pótlása
 
-App.kt: Az alkalmazás belépési pontja. Definiálja a Material 3 sötét témát, a NavHost navigációs gráfot, az alsó
-navigációs sávot (NavigationBar), valamint figyeli a Supabase hitelesítési állapotát (SessionStatus).
+A nyilvános repozitóriumból a környezetspecifikus adatokat tartalmazó `SupabaseClient.kt` fájl hiányzik. A fordításhoz az eredeti osztály- és csomagstruktúrával egyező fájlt kell létrehozni az alábbi helyen:
 
-LoginScreen.kt: Bejelentkezési és regisztrációs képernyő; regisztrációkor bekéri a sportoló antropometriai adatait is.
+```text
+composeApp/src/commonMain/kotlin/org/example/project/network/SupabaseClient.kt
+```
 
-ConfigScreen.kt: Főképernyő a gyakorlatok kategóriák szerinti böngészéséhez. A ModalBottomSheet panelen állítható be a
-feladat időtartama és a Bluetooth-kapcsolat a mérés indítása előtt.
+A következő kód **konfigurációs minta**, nem tartalmaz valódi végpontot vagy kulcsot:
 
-ExerciseFormScreen.kt: Egyéni gyakorlatok létrehozása, szerkesztése, törlése és oktatóvideók csatolása.
-
-ExecutionScreen.kt: A mérés végrehajtási képernyője kameraképpel (CameraPreview), előkészületi és mérési időzítővel,
-szünet/leállítás vezérléssel, valamint mentés/elvetés dialógussal.
-
-ResultsScreen.kt: A kiértékelt mérések részletes nézete: biomechanikai összpontszám, stabilitás/alátámasztás/szimmetria
-kártyák, TrunkAngleChart (törzsszög-idősor), valamint SockAnalysisCard és FootCopPlot (talpi nyomáseloszlás és CoP-proxy
-pálya).
-
-ProgressScreen.kt: A kiértékelt mérések időbeli alakulását megjelenítő képernyő (ProgressLineChart), gyakorlatonként és
-választható metrikánként csoportosítva.
-
-SavedSessionScreen.kt: Az aktív és a logikailag törölt (deleted_sessions) munkamenetek listázása, eredmények megnyitása,
-soft delete és visszaállítás.
-
-ProfileScreen.kt: A bejelentkezett sportoló profiladatainak lekérdezése és módosítása.
-
-CameraPreview.kt, VideoPlayer.kt, VideoPicker.kt: Platformfüggetlen expect UI-deklarációk a kamerakezeléshez,
-videólejátszáshoz és galériából történő videóválasztáshoz.
-
-Állapotkezelés (org.example.project.viewmodel)
-
-SessionViewModel.kt: MVVM ViewModel, amely vezérli a mérés teljes életciklusát (visszaszámlálók, szüneteltetés, BLE és
-mock adatgyűjtés, MeasurementDocument összeállítása, videófeltöltés, felhős listák és eredmények szinkronizálása).
-
-SessionUiState.kt: A felhasználói felület aktuális állapotát leíró megváltoztathatatlan (immutable) adatosztály.
-
-Hálózati réteg (org.example.project.network)
-
-AuthRepository.kt: Regisztráció (automatikus beléptetéssel és athletes profil létrehozásával), bejelentkezés és
-kijelentkezés.
-
-ProfileRepository.kt: A sportolói profil lekérdezése és frissítése a public.athletes nézeten keresztül.
-
-ExerciseRepository.kt: Gyakorlatok lekérdezése (helyi exercises_cache.json offline gyorsítótárral), saját gyakorlatok
-CRUD műveletei és oktatóvideók kezelése az exercise-videos bucketben.
-
-SessionRepository.kt: Mérések helyi és felhős mentése (pending / sock_only státuszkezeléssel), measurement-videos
-feltöltés, soft delete, törölt mérések lekérdezése, restore_session és get_my_sock_analysis RPC-hívások, valamint
-biomechanikai eredmények letöltése.
-
-Bluetooth és jelfeldolgozás (org.example.project.bluetooth)
-
-SensoriaBluetoothManager.kt: Platformfüggetlen expect class a BLE kapcsolathoz és a Flow<Pair<SockSide, SensorSample>>
-adatfolyamhoz.
-
-BitReader.kt: Segédosztály tetszőleges bitszélességű előjel nélküli értékek kiolvasásához bájttömbből.
-
-SensoriaDecoder.kt: A 20 bájtos bináris Sensoria keretek dekódolása SensorSample objektummá.
-
-SockSide.kt: A bal és jobb oldali szenzor megkülönböztetésére szolgáló enum.
-
-Adatmodellek, DTO-k és segédosztályok (org.example.project.data, dto, analysis)
-
-MeasurementDocument.kt: A felhőbe küldött és lokálisan mentett mérési JSON szerkezete (MeasurementDocument, Sensors,
-Side, Video).
-
-SensoriaData.kt: SensorSample, Pressure, IMU, Magnetometer adatmodellek.
-
-Athlete.kt, Exercises.kt, ScheduledTask.kt, SessionEntity.kt: Alap entitások és ütemezett feladattípusok.
-
-BiomechanicsResult.kt, TrunkAnglePoint.kt, SockAnalysisResult.kt: A szerveroldali videós és zoknis elemzések
-deszerializálási modelljei.
-
-FileStorage.kt, SyncManager.kt, Platform.kt: Platformfüggetlen expect deklarációk fájlkezeléshez,
-háttérszinkronizációhoz és platformazonosításhoz.
-
-MockDataGenerator.kt: Szintetikus szenzoradatok generálása hardver nélküli teszteléshez.
-
-2. Android-specifikus megvalósítás (androidMain)
-
-MainActivity.kt & AppContextHolder.kt: Android belépési pont és szálbiztos (AtomicReference) alkalmazáskontextus-tároló.
-
-SensoriaBluetoothManager.kt: Natív Android BLE szkennelés (Service UUID szűréssel), párhuzamos GATT-kapcsolat a bal (
-Sensoria-C1-D348) és jobb (Sensoria-C1-9C1D) zoknihoz, CCCD értesítések engedélyezése és host_time_ms időbélyegzés.
-
-CameraPreview.android.kt: CameraX (ProcessCameraProvider, Preview, VideoCapture<Recorder>) alapú előlapi előnézet és HD
-MP4 rögzítés.
-
-VideoPlayer.android.kt & VideoPicker.android.kt: Media3 ExoPlayer alapú végtelenített videólejátszó és
-ActivityResultContracts.GetContent videóválasztó.
-
-FileStorage.android.kt: Lokális fájlkezelés a context.filesDir könyvtárban, a feltöltött mérési JSON-ök _synced.json
-utótaggal való megjelölésével.
-
-SyncManager.android.kt & SessionSyncWorker.kt: WorkManager (CoroutineWorker) alapú, aktív internetkapcsolathoz (
-NetworkType.CONNECTED) kötött háttérszinkronizáció.
-
-Platform.android.kt: Az aktuális Android SDK-verzió lekérdezése.
-
-3. Adatbázis és szerveroldali kiértékelés (.sql)
-
-A PostgreSQL séma két elkülönített rétegre épül:
-
-Védett belső séma (zokni): Itt találhatók a fizikai táblák (athletes, exercises, sessions, video_json,
-extracted_keypoints, biomechanics_results, sock_analysis_results, combined_analysis_results) bekapcsolt Row Level
-Security (RLS) szabályokkal.
-
-Publikus API réteg (public): A kliens kizárólag security_invoker='true' beállítású nézeteken (athletes, exercises,
-sessions, deleted_sessions, biomechanics_results) és SECURITY DEFINER RPC-függvényeken (restore_session,
-get_my_sock_analysis) keresztül kommunikál az adatbázissal. A nézeteken elhelyezett INSTEAD OF triggerek biztosítják az
-írási műveleteket és a logikai törlést (soft delete).
-
-Automatizált kiértékelő triggerek
-
-trg_after_video_json_insert: A videóalapú pózbecslés eredményéből (video_json) kinyeri a 17+2 anatómiai kulcspontot az
-extracted_keypoints táblába.
-
-trg_calc_biomechanics: Az analysis_status = 'inserted' állapot elérésekor lefuttatja a szűrést, az anatómiai skálázást,
-a de Leva-féle CoM-számítást, a poszturális mutatókat és a törzsszög-idősor mentését (biomechanics_results).
-
-trigger_evaluate_sock_on_inserted: Videós feldolgozás után (inserted) vagy videó nélküli mérésnél (sock_only) elindítja
-a talpi nyomáselemzést (evaluate_sock_biomechanics).
-
-trigger_combined_on_video / trigger_combined_on_sock: Mindkét modalitás elkészültekor összeveti a felsőtesti és talpi
-kilengéseket (combined_analysis_results).
-
-Konfiguráció (saját környezetben való futtatáshoz)
-
-Mivel a hitelesítő adatok ki vannak zárva a verziókövetésből, a projekt lefordításához hozz létre egy SupabaseClient.kt
-fájlt az org.example.project.network csomagban az alábbi mintával:
-
+```kotlin
 package org.example.project.network
 
 import io.github.jan.supabase.auth.Auth
@@ -233,25 +154,67 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
 
 object SupabaseManager {
-private const val SUPABASE_URL = "YOUR_SUPABASE_URL"
-private const val SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY"
+    private const val SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
+    private const val SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY"
 
     val supabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_KEY) {
         install(Postgrest)
         install(Storage)
         install(Auth)
     }
-
 }
+```
 
-Ezután futtasd le a mellékelt SQL migrációs sémát a saját Supabase/PostgreSQL példányodon, és hozd létre a
-measurement-videos valamint az exercise-videos Storage bucketeket.
+A `SUPABASE_URL` értékét a saját projekt URL-jére, a kulcsot pedig a saját kliensoldali Supabase-kulcsra kell cserélni. **A `service_role` és más titkos, szerveroldali kulcsok nem kerülhetnek a mobilalkalmazásba.** A kliensoldali kulcs használatához megfelelő RLS-, Storage- és Auth-szabályokat kell beállítani. Ha a háttérrendszer saját IP-címen érhető el, a végpontot a konkrét környezetnek megfelelően kell módosítani; Androidon a hálózati elérhetőség és a HTTP/HTTPS szabályai külön ellenőrzendők.
 
-Technológiai stack
+A fájl helyét és az `object SupabaseManager` elnevezést a meglévő importokhoz kell igazítani. A példa nem garantálja, hogy további környezeti beállítások nélkül minden funkció működni fog.
 
-Mobilkliens: Kotlin Multiplatform (KMP), Jetpack Compose (Material 3), Kotlin Coroutines & Flow, kotlinx.serialization,
-kotlinx.datetime
+### 2. Adatbázis és Storage előkészítése
 
-Android natív modulok: Android BLE / GATT API, CameraX, Media3 ExoPlayer, AndroidX WorkManager
+1. Hozz létre saját Supabase-projektet.
+2. Vizsgáld át és szükség esetén sorrendben alkalmazd a repozitóriumban található SQL-állományokat. A fájlok nem feltétlenül alkotnak önmagukban automatikusan futtatható, teljes migrációs láncot.
+3. Hozd létre és konfiguráld a `measurement-videos` és `exercise-videos` Storage bucketeket.
+4. Ellenőrizd az RLS-szabályokat, RPC-függvényeket, triggereket és a bejelentkezett felhasználó jogosultságait.
+5. A videóalapú elemzéshez külön konfiguráld a NiFi–MMPose feldolgozó folyamatot, ha azt is futtatni szeretnéd.
 
-Backend & Adatbázis: Supabase (supabase-kt 3.0.0, Ktor), PostgreSQL, PL/pgSQL, Row Level Security (RLS)
+### 3. Android-alkalmazás fordítási parancsai
+
+Linux és macOS:
+
+```bash
+./gradlew :composeApp:assembleDebug
+```
+
+Windows (PowerShell):
+
+```powershell
+.\gradlew.bat :composeApp:assembleDebug
+```
+
+A parancsok a debug APK fordítását kezdeményezik; a hiányzó konfiguráció és egyéb szükséges környezeti feltételek pótlása nélkül a fordítás hibával megszakadhat. **A repozitórium változtatás nélküli sikeres fordítása nincs igazolva.**
+
+### 4. iOS-projekt
+
+Az [`iosApp`](./iosApp) könyvtár Xcode-ban nyitható meg. Az iOS-célplatformhoz további környezeti és platformfüggő implementációk lehetnek szükségesek. A jelen README nem tekinthető teljes iOS-telepítési útmutatónak.
+
+## Technológiák
+
+| Terület | Eszközök |
+|---|---|
+| Kliens | Kotlin Multiplatform, Compose Multiplatform, Material 3, Kotlin Coroutines és Flow, `kotlinx.serialization`, `kotlinx.datetime` |
+| Android | BLE/GATT API, CameraX, Media3 ExoPlayer, AndroidX WorkManager |
+| Backend és adattárolás | Supabase (Auth, Storage, PostgreSQL), supabase-kt, Ktor |
+| Adatbázisoldali elemzés | PostgreSQL, PL/pgSQL, RLS, triggerek |
+| Külső videós feldolgozás | NiFi, MMPose (külön konfigurálandó) |
+
+## Adatvédelem és a nyilvános forráskód korlátai
+
+- A nyilvános repozitórium nem tartalmazza a fejlesztői környezet tényleges végpontját és egyedi konfigurációját.
+- Nem tartalmaz valós személyekhez köthető mérési videókat vagy JSON-mérési állományokat.
+- Az adatokhoz való hozzáférést nem a kliensoldali kulcs titkossága, hanem elsősorban a helyes hitelesítés, az RLS és a Storage-hozzáférési szabályok védik.
+- A szenzoros mérés, a felhős szolgáltatások és a videófeldolgozó rendszer teljes reprodukálásához a közzétett forráskódon túl további konfiguráció és eszközök szükségesek.
+- Éles környezetben kizárólag megfelelő engedélyekkel és adatkezelési feltételekkel szabad személyes mérési adatokat feldolgozni.
+
+## Kapcsolódó dokumentáció
+
+A repozitórium a szakdolgozati megvalósításhoz tartozik. A rendszer elvi hátterét, tervezését, az alkalmazott biomechanikai módszereket és az eredmények értelmezését a szakdolgozat részletesebben tárgyalja.
