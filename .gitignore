@@ -1,19 +1,28 @@
-*.iml
-.kotlin
-.gradle
+# 1. Alapból MINDENT kizárunk (build, IDE, videók, .env, kulcsok, JSON-ök, stb.)
+*
+
+# 2. A mappákat be kell engedni, hogy a Git bele tudjon nézni az almappákba
+!*/
+
+# 3. Kizárólag a szakdolgozathoz releváns fájlok engedélyezése
+!.gitignore
+!README.md
+!*.kt
+!*.sql
+
+# 4. Generált mappák kizárása (hogy az ott lévő .kt fájlok se kerüljenek be)
 **/build/
-xcuserdata
-!src/**/build/
-local.properties
-.idea
-.DS_Store
-captures
-.externalNativeBuild
-.cxx
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcodeproj/project.xcworkspace/
-!*.xcworkspace/contents.xcworkspacedata
-**/xcshareddata/WorkspaceSettings.xcsettings
-node_modules/
+.gradle/
+.idea/
+.kotlin/
+
+# 5. Érzékeny konfiguráció kizárása
+**/SupabaseClient.kt
+**/SupabaseConfig.kt
+
+# 6. Opcionális: régi, kikommentelt DTO-k és sablonfájlok kizárása
+**/SessionExport.kt
+**/ExportedSensorData.kt
+**/ExportedTasks.kt
+**/SessionInfo.kt
+**/Greeting.kt
